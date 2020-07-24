@@ -12,7 +12,79 @@ db.serialize(() => {
     // ovde treba da formiras bazu
     // znaci sve tabele i relacije
     // POGLEDAJ AKO POSTOJI NEKI BOLJI NACIN OD OVOGA
-    db.run('CREATE TABLE IF NOT EXISTS artikli (ID_artikla INT PRIMARY KEY, naziv_artikla NCHAR(60) NOT NULL, jedinica_mere NCHAR(20) NOT NULL, cena FLOAT NOT NULL )');
+
+    // proveri za INT PRIMARY KEY mozda ga ne uvecava automatski,
+    // promeni mozda na INTEGER PRIMARY KEY
+    db.run(`CREATE TABLE IF NOT EXISTS Artikl (
+        SifraArtikla INT PRIMARY KEY,
+        Naziv NCHAR(100) NOT NULL,
+        JedinicaMere NCHAR(20) NOT NULL,
+        Cena FLOAT NOT NULL,
+        UkupnaKolicina FLOAT NOT NULL DEFAULT 0
+    )`, (err) => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    db.run(`CREATE TABLE IF NOT EXISTS Radnik (
+        ID_Radnika INT PRIMARY KEY,
+        PrezimeIme NCHAR(100) NOT NULL,
+        UkupnoZaduzenje FLOAT NOT NULL DEFAULT 0
+    )`, (err) => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    db.run(`CREATE TABLE IF NOT EXISTS Ulaz (
+        ID_Ulaza INT PRIMARY KEY,
+        SifraArtikla INT NOT NULL,
+        Kolicina FLOAT NOT NULL,
+        FOREIGN KEY (SifraArtikla)
+            REFERENCES Artikl (SifraArtikla)
+    )`, (err) => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    db.run(`CREATE TABLE IF NOT EXISTS Zaduzenje (
+        ID_Zaduzenja INT PRIMARY KEY,
+        ID_Radnika INT NOT NULL,
+        SifraArtikla INT NOT NULL,
+        Kolicina FLOAT NOT NULL,
+        Datum DATE NOT NULL,
+        FOREIGN KEY (ID_Radnika)
+            REFERENCES Radnik (ID_Radnika),
+        FOREIGN KEY (SifraArtikla)
+            REFERENCES Artikl (SifraArtikla)
+    )`, (err) => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    db.run(`CREATE TABLE IF NOT EXISTS ZaduzenjePoRadniku (
+        ID_Radnika INT,
+        SifraArtikla INT,
+        Kolicina FLOAT NOT NULL DEFAULT 0,
+        PRIMARY KEY (ID_Radnika, SifraArtikla)
+    )`, (err) => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    db.run(`CREATE TABLE IF NOT EXISTS Razduzenje (
+        ID_Razduzenja INT PRIMARY KEY,
+        ID_Radnika INT NOT NULL,
+        SifraArtikla INT NOT NULL,
+        Kolicina FLOAT NOT NULL,
+        FOREIGN KEY (ID_Radnika)
+            REFERENCES Radnik (ID_Radnika),
+        FOREIGN KEY (SifraArtikla)
+            REFERENCES Artikl (SifraArtikla)
+    )`, (err) => {
+        if (err) {
+            console.log(err);
+        }
+    })
 });
 
 function insertArtikli(record) {
