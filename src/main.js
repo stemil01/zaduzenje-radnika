@@ -14,7 +14,7 @@ function createWindow() {
     win.loadFile('views/index.ejs');
 }
 
-ejse.options('root', './views');
+ejse.options('root', '../views');
 ejse.data('rows', [['stefan', 'milenkovic'], ['marko', 'filipovic'], ['mirko', 'stefanovic']]);
 
 app.whenReady()
