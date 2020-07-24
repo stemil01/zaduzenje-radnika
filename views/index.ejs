@@ -1,0 +1,28 @@
+<!DOCTYPE html> 
+ <html>
+    <head>
+        <%- include('partials/head') %>
+    </head>
+    <body>
+        <h1>Djora Vet</h1>
+
+        <p>Radnici:</p>
+        <table>
+            <% for (let i = 0; i < rows.length; i++) { %>
+            <tr>
+                <% for (let j = 0; j < rows[i].length; j++) { %> 
+                    <th>
+                        <%= rows[i][j] %>
+                    </th>
+                <% } %> 
+            </tr>
+            <% } %>
+        </table>
+
+        <a href="klik.ejs">Kliknite ovde</a>
+
+    </body>
+    <footer>
+        <%- include('partials/footer') %>
+    </footer>
+</html>
