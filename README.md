@@ -1,1 +1,1 @@
-# zaduzenje-radnika
+# Aplikacija sa bazom podataka za Zaduzenje radnika
