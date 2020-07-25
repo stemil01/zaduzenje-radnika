@@ -19,8 +19,19 @@
             <% } %>
         </table>
 
+        <button type="button" onclick="insert_Artikl()">Ubaci artikl</button>
         <a href="klik.ejs">Kliknite ovde</a>
-
+        <script>
+            let db = <%- db %>;
+            function insert_Artikl() {
+                db.run(`SELECT *
+                        FROM Artikl`, (err) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                })
+            }
+        </script>
     </body>
     <footer>
         <%- include('partials/footer') %>

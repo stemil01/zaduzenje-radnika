@@ -15,7 +15,8 @@ function createWindow() {
 }
 
 ejse.options('root', '../views');
-ejse.data('rows', [['stefan', 'milenkovic'], ['marko', 'filipovic'], ['mirko', 'stefanovic']]);
+ejse.data('rows', [['stefan', 'milosevic'], ['marko', 'filipovic'], ['mirko', 'stefanovic']]);
+ejse.data('db', JSON.stringify(db)); // zato sto je ovo retardirano
 
 app.whenReady()
     .then(createWindow);

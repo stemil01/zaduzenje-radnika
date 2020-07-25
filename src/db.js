@@ -4,8 +4,9 @@ const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./db/zaduzenje_radnika.db', (err) => {
     if (err) {
         console.log(err.message);
+    } else {
+        console.log('Connected to the database');
     }
-    console.log('Connected to the database');
 });
 
 db.serialize(() => {
@@ -87,9 +88,12 @@ db.serialize(() => {
     })
 });
 
-function insertArtikli(record) {
-
+function insert_Artikl(record) {
+    console.log('oj, oj, ojcina');
 }
 
+module.exports = { db };
+
 // close the database connection
+// mozda ovo ne treba da bude ovde, nego tek kasnije
 db.close();
