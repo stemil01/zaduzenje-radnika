@@ -1,6 +1,8 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const ejse = require('ejs-electron');
+const database = require('./db.js');
 const db = require('./db.js');
+const { data } = require('ejs-electron');
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -12,11 +14,18 @@ function createWindow() {
     });
 
     win.loadFile('views/index.ejs');
+    win.webContents.openDevTools();
 }
-
-ejse.options('root', '../views');
-ejse.data('rows', [['stefan', 'milosevic'], ['marko', 'filipovic'], ['mirko', 'stefanovic']]);
-ejse.data('db', JSON.stringify(db)); // zato sto je ovo retardirano
 
 app.whenReady()
     .then(createWindow);
+
+ipcMain.on("desilo-se", () => {
+    let result = 'oj, oj, ojcina';
+    console.log(result);
+});
+
+ipcMain.on("list-Artikl", () => {
+    let rows = database.list_Artikl();
+    ejse('rows_Artikl', rows);
+});

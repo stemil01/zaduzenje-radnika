@@ -1,3 +1,5 @@
+const ejsElectron = require('ejs-electron');
+
 const sqlite3 = require('sqlite3').verbose();
 
 // open the database
@@ -88,12 +90,18 @@ db.serialize(() => {
     })
 });
 
-function insert_Artikl(record) {
-    console.log('oj, oj, ojcina');
+function list_Artikl() {
+    db.all(`SELECT *
+            FROM Artikl`, (err, rows) => {
+                if (err) {
+                    throw err;
+                }
+            });
+    return rows;
 }
 
-module.exports = { db };
+module.exports = { db, list_Artikl };
 
 // close the database connection
 // mozda ovo ne treba da bude ovde, nego tek kasnije
-db.close();
+// db.close();

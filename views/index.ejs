@@ -7,29 +7,19 @@
         <h1>Djora Vet</h1>
 
         <p>Radnici:</p>
-        <table>
-            <% for (let i = 0; i < rows.length; i++) { %>
-            <tr>
-                <% for (let j = 0; j < rows[i].length; j++) { %> 
-                    <th>
-                        <%= rows[i][j] %>
-                    </th>
-                <% } %> 
-            </tr>
-            <% } %>
-        </table>
 
-        <button type="button" onclick="insert_Artikl()">Ubaci artikl</button>
+        <button type="button" onclick="list_Artikl()">Svi artikli</button>
         <a href="klik.ejs">Kliknite ovde</a>
+
         <script>
-            let db = <%- db %>;
+            const { ipcRenderer } = require('electron');
+
             function insert_Artikl() {
-                db.run(`SELECT *
-                        FROM Artikl`, (err) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                })
+                ipcRenderer.send("insert-Artikl");
+            }
+
+            function list_Artikl() {
+                ipcRenderer.send("list-Artikl");
             }
         </script>
     </body>
