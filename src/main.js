@@ -1,7 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const ejse = require('ejs-electron');
 const database = require('./db.js');
-const db = require('./db.js');
 const { data } = require('ejs-electron');
 
 function createWindow() {
@@ -20,12 +19,9 @@ function createWindow() {
 app.whenReady()
     .then(createWindow);
 
-ipcMain.on("desilo-se", () => {
-    let result = 'oj, oj, ojcina';
-    console.log(result);
-});
-
-ipcMain.on("list-Artikl", () => {
-    let rows = database.list_Artikl();
-    ejse('rows_Artikl', rows);
+ipcMain.on("list-Artikl", async () => {
+    let rows = await database.list_Artikl();
+    console.log('3');
+    console.log(rows);
+    ejse.data('rows_Artikl', rows);
 });

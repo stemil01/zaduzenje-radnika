@@ -9,6 +9,17 @@
         <p>Radnici:</p>
 
         <button type="button" onclick="list_Artikl()">Svi artikli</button>
+
+        <% if (typeof rows_Artikl !== 'undefined') { %>
+            <table>
+                <% for (let i = 0; i < rows_Artikl.length; i++) { %> 
+                    <tr>
+                        <th>${rows_Artikl.Naziv}</th> 
+                    </tr>
+                <% } %>
+            </table>
+        <% } %> 
+
         <a href="klik.ejs">Kliknite ovde</a>
 
         <script>
