@@ -11,7 +11,6 @@ app.on('ready', () => {
     const win = new BrowserWindow({
         width: 1300,
         height: 800,
-        transparent: true,
         webPreferences: {
             nodeIntegration: true
         }
@@ -29,5 +28,18 @@ app.on('ready', () => {
                 console.log(rows);
                 win.webContents.send("rows-Artikl", rows);
             });
+    });
+
+    ipcMain.on("openWin_Artikl", () => {
+        let insertWin = new BrowserWindow({
+            width: 600,
+            height: 200,
+            webPreferences: {
+                nodeIntegration: true
+            }
+        });
+        insertWin.removeMenu();
+
+        insertWin.loadFile('views/popups/insertArtikl.ejs');
     });
 });

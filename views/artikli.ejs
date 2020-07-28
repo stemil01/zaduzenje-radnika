@@ -5,6 +5,24 @@
     </head>
     <body>
         <%- include('partials/navigation') %>
+        <table id="listaArtikala"></table>
+
+        <button type="button" onclick="openWin_Artikl()">Dodaj artkl</button>
+
+        <script>
+            const { ipcRenderer } = require('electron');
+
+            ipcRenderer.send("list-Artikl");
+            ipcRenderer.on("rows-Artikl", (evt, rows) => {
+                createTable(rows, "listaArtikala");
+            });
+
+            function openWin_Artikl() {
+                ipcRenderer.send("openWin_Artikl");
+            }
+
+        </script>
+        <script src="../src/renderer.js"></script>
     </body>
     <footer>
         <%- include('partials/footer') %>
