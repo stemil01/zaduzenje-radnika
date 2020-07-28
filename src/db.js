@@ -19,7 +19,7 @@ db.serialize(() => {
     // proveri za INT PRIMARY KEY mozda ga ne uvecava automatski,
     // promeni mozda na INTEGER PRIMARY KEY
     db.run(`CREATE TABLE IF NOT EXISTS Artikl (
-        SifraArtikla INT PRIMARY KEY,
+        SifraArtikla INTEGER PRIMARY KEY,
         Naziv NCHAR(100) NOT NULL,
         JedinicaMere NCHAR(20) NOT NULL,
         Cena FLOAT NOT NULL,

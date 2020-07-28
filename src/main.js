@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const ejse = require('ejs-electron');
 const database = require('./db.js');
 const { data } = require('ejs-electron');
@@ -25,7 +25,6 @@ app.on('ready', () => {
                 if (err) {
                     throw err;
                 }
-                console.log(rows);
                 win.webContents.send("rows-Artikl", rows);
             });
     });
@@ -41,5 +40,17 @@ app.on('ready', () => {
         insertWin.removeMenu();
 
         insertWin.loadFile('views/popups/insertArtikl.ejs');
+        insertWin.webContents.openDevTools();
+    });
+
+    ipcMain.on("insert-Artikl", (evt, SifraArtikla, Naziv, JedinicaMere, Cena) => {
+        database.db.run(`INSERT INTO
+                        Artikl (SifraArtikla, Naziv, JedinicaMere, Cena)
+                        VALUES (?, ?, ?, ?)`, [SifraArtikla, Naziv, JedinicaMere, Cena], (err) => {
+                            if (err) {
+                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                            }
+                            win.webContents.send("reload-list-Artikl");
+                        });
     });
 });

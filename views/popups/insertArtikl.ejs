@@ -6,6 +6,35 @@
         <title>Unos artikla</title>
     </head>
     <body>
-        
+        <form>
+            <label for="SifraArtikla">Sifra artikla:</label>
+            <input type="number" name="SifraArtikla" id="SifraArtikla"><br>
+
+            <label for="Naziv">Naziv:</label>
+            <input type="text" name="Naziv" id="Naziv"><br>
+
+            <label for="JedinicaMere">Jedinica mere:</label>
+            <input type="text" name="JedinicaMere" id="JedinicaMere"><br>
+
+            <label for="Cena">Cena: </label>
+            <input type="number" name="Cena" id="Cena"><br>
+
+            <button type="submit" onclick="insert_Artikl()">Unesi</button>
+        </form>
+
+        <button type="menu">Zatvori</button>
+                
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        function insert_Artikl() {
+            let SifraArtikla = document.getElementById("SifraArtikla").value;
+            let Naziv = document.getElementById("Naziv").value;
+            let JedinicaMere = document.getElementById("JedinicaMere").value;
+            let Cena = document.getElementById("Cena").value;
+
+            ipcRenderer.send("insert-Artikl", SifraArtikla, Naziv, JedinicaMere, Cena);
+        }
+    </script>
     </body>
 </html>

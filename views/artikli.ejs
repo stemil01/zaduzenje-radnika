@@ -9,6 +9,7 @@
 
         <button type="button" onclick="openWin_Artikl()">Dodaj artkl</button>
 
+        <script src="../src/renderer.js"></script>
         <script>
             const { ipcRenderer } = require('electron');
 
@@ -21,8 +22,11 @@
                 ipcRenderer.send("openWin_Artikl");
             }
 
+            ipcRenderer.on("reload-list-Artikl", () => {
+                location.reload();
+            })
+
         </script>
-        <script src="../src/renderer.js"></script>
     </body>
     <footer>
         <%- include('partials/footer') %>
