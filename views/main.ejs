@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <%- include('partials/head') %>
+    </head>
+    <body>
+        <h1>Pocetna strana</h1>
+
+        <ul>
+            <li><a href="artikli.ejs">Artikli</a></li>
+            <li><a href="radnici.ejs">Radnici</a></li>
+            <li><a href="ulaz.ejs">Ulaz</a></li>
+            <li><a href="skladiste.ejs">Stanje skladista</a></li>
+            <li><a href="zaduzenja.ejs">Zaduzenja</a></li>
+            <li><a href="razduzenja.ejs">Razduzenja</a></li>
+            <li><a href="dnevnik.ejs">Dnevnik transakcija</a></li>
+        </ul>
+
+        <script>
+            const { ipcRenderer } = require('electron');
+
+            function insert_Artikl() {
+                ipcRenderer.send("insert-Artikl");
+            }
+
+            function list_Artikl() {
+                ipcRenderer.send("list-Artikl");
+            }
+
+            ipcRenderer.on("rows-Artikl", (evt, rows) => {
+                createTable(rows, "listaArtikala");
+            });
+        </script>
+        <script src="../src/renderer.js"></script>
+    </body>
+    <footer>
+        <%- include('partials/footer') %>
+    </footer>
+</html>

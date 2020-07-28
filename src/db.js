@@ -90,19 +90,7 @@ db.serialize(() => {
     })
 });
 
-async function list_Artikl() {
-    db.all(`SELECT *
-            FROM Artikl`, (err, rows) => {
-                if (err) {
-                    throw err;
-                }
-                console.log('1');
-                return rows;
-            });
-    console.log('2');
-}
-
-module.exports = { db, list_Artikl };
+module.exports = { db };
 
 // mozda ovo ne treba da bude ovde, nego tek kasnije
 // db.close();
