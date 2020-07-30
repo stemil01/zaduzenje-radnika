@@ -12,7 +12,8 @@ app.on('ready', () => {
         width: 1300,
         height: 800,
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            enableRemoteModule: true
         }
     });
 
@@ -20,7 +21,7 @@ app.on('ready', () => {
     win.webContents.openDevTools();
 
     ipcMain.on("list-Artikl", () => {
-        database.db.all(`SELECT *
+        database.db.all(`SELECT SifraArtikla, Naziv, JedinicaMere, Cena
             FROM Artikl`, (err, rows) => {
                 if (err) {
                     throw err;
@@ -29,12 +30,14 @@ app.on('ready', () => {
             });
     });
 
+    // ARTIKL
     ipcMain.on("openWin_Artikl", () => {
         let insertWin = new BrowserWindow({
             width: 600,
             height: 200,
             webPreferences: {
-                nodeIntegration: true
+                nodeIntegration: true,
+                enableRemoteModule: true
             }
         });
         insertWin.removeMenu();
@@ -50,7 +53,16 @@ app.on('ready', () => {
                             if (err) {
                                 dialog.showErrorBox('Greska pri unosu podataka', err.message);
                             }
-                            win.webContents.send("reload-list-Artikl");
+                            win.reload();
+                        });
+    });
+
+    ipcMain.on("delete-Artikl", (evt, SifraArtikla) => {
+        database.db.run(`DELETE FROM Artikl
+                        WHERE SifraArtikla=?`, SifraArtikla, (err) => {
+                            if (err) {
+                                dialog.showErrorBox("Greska pri brisanju", err.message);
+                            }
                         });
     });
 });

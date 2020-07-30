@@ -5,6 +5,7 @@ function createTable(data, tableID) {
     let thead = table.createTHead();
     let headerData = Object.keys(data[0]);
     headerHTML = '<tr>';
+    headerHTML += '<th></th>';
     for (let key of headerData) {
         headerHTML += `<th>${key}</th>`;
     }
@@ -21,6 +22,7 @@ function createTable(data, tableID) {
         for (let value of rowData) {
             rowHTML += `<td>${value}</td>`;
         }
+        rowHTML += '<button type="button" class="rowMenu">X</button>';
         row.innerHTML = rowHTML;
         tbody.appendChild(row);
     }

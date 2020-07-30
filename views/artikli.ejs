@@ -11,7 +11,8 @@
 
         <script src="../src/renderer.js"></script>
         <script>
-            const { ipcRenderer } = require('electron');
+            const { ipcRenderer, dialog } = require('electron');
+            const $ = require('jquery');
 
             ipcRenderer.send("list-Artikl");
             ipcRenderer.on("rows-Artikl", (evt, rows) => {
@@ -22,10 +23,29 @@
                 ipcRenderer.send("openWin_Artikl");
             }
 
-            ipcRenderer.on("reload-list-Artikl", () => {
-                location.reload();
-            })
+            function deleteRow() {
+                let $row = $(this).closest("tr");
+                let $tds = $row.find("td");
 
+                $.each($tds, () => {
+                    console.log($(this).text());
+                });
+            }
+
+            $(document).ready(function() {
+                $(".rowMenu").on("click", function() {
+                    var $row = $(this).closest("tr");
+                    var $tds = $row.find("td");
+
+                    $.each($tds, function() {
+                        console.log($(this).text());
+                    });
+                    
+                    let SifraArtikla = $tds.eq(0).text();
+                    ipcRenderer.send("delete-Artikl", SifraArtikla);
+                    $row.remove(); // ovo je potencijalno mesto gde moze da dodje do neke greske, proveri!
+                });
+            });
         </script>
     </body>
     <footer>

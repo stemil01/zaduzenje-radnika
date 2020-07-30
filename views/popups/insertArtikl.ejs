@@ -22,10 +22,10 @@
             <button type="submit" onclick="insert_Artikl()">Unesi</button>
         </form>
 
-        <button type="menu">Zatvori</button>
+        <button type="menu" onclick="closeWin()">Zatvori</button>
                 
     <script>
-        const { ipcRenderer } = require('electron');
+        const { ipcRenderer, remote } = require('electron');
 
         function insert_Artikl() {
             let SifraArtikla = document.getElementById("SifraArtikla").value;
@@ -34,6 +34,11 @@
             let Cena = document.getElementById("Cena").value;
 
             ipcRenderer.send("insert-Artikl", SifraArtikla, Naziv, JedinicaMere, Cena);
+        }
+
+        function closeWin() {
+            let window = remote.getCurrentWindow();
+            window.close();
         }
     </script>
     </body>
