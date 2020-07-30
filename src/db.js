@@ -19,7 +19,8 @@ db.serialize(() => {
     // proveri za INT PRIMARY KEY mozda ga ne uvecava automatski,
     // promeni mozda na INTEGER PRIMARY KEY
     db.run(`CREATE TABLE IF NOT EXISTS Artikl (
-        SifraArtikla INTEGER PRIMARY KEY,
+        ID_Artikla INTEGER PRIMARY KEY,
+        SifraArtikla INT UNIQUE NOT NULL,
         Naziv NCHAR(100) NOT NULL,
         JedinicaMere NCHAR(20) NOT NULL,
         Cena FLOAT NOT NULL,
@@ -30,7 +31,7 @@ db.serialize(() => {
         }
     });
     db.run(`CREATE TABLE IF NOT EXISTS Radnik (
-        ID_Radnika INT PRIMARY KEY,
+        ID_Radnika INTEGER PRIMARY KEY,
         PrezimeIme NCHAR(100) NOT NULL,
         UkupnoZaduzenje FLOAT NOT NULL DEFAULT 0
     )`, (err) => {
@@ -39,50 +40,54 @@ db.serialize(() => {
         }
     });
     db.run(`CREATE TABLE IF NOT EXISTS Ulaz (
-        ID_Ulaza INT PRIMARY KEY,
-        SifraArtikla INT NOT NULL,
+        ID_Ulaza INTEGER PRIMARY KEY,
+        ID_Artikla INTEGER NOT NULL,
         Kolicina FLOAT NOT NULL,
-        FOREIGN KEY (SifraArtikla)
-            REFERENCES Artikl (SifraArtikla)
+        FOREIGN KEY (ID_Artikla)
+            REFERENCES Artikl (ID_Artikla)
     )`, (err) => {
         if (err) {
             console.log(err);
         }
     });
     db.run(`CREATE TABLE IF NOT EXISTS Zaduzenje (
-        ID_Zaduzenja INT PRIMARY KEY,
-        ID_Radnika INT NOT NULL,
-        SifraArtikla INT NOT NULL,
+        ID_Zaduzenja INTEGER PRIMARY KEY,
+        ID_Radnika INTEGER NOT NULL,
+        ID_Artikla INTEGER NOT NULL,
         Kolicina FLOAT NOT NULL,
         Datum DATE NOT NULL,
         FOREIGN KEY (ID_Radnika)
             REFERENCES Radnik (ID_Radnika),
-        FOREIGN KEY (SifraArtikla)
-            REFERENCES Artikl (SifraArtikla)
+        FOREIGN KEY (ID_Artikla)
+            REFERENCES Artikl (ID_Artikla)
     )`, (err) => {
         if (err) {
             console.log(err);
         }
     });
     db.run(`CREATE TABLE IF NOT EXISTS ZaduzenjePoRadniku (
-        ID_Radnika INT,
-        SifraArtikla INT,
+        ID_Radnika INTEGER,
+        ID_Artikla INTEGER,
         Kolicina FLOAT NOT NULL DEFAULT 0,
-        PRIMARY KEY (ID_Radnika, SifraArtikla)
+        PRIMARY KEY (ID_Radnika, ID_Artikla)
+        FOREIGN KEY (ID_Radnika)
+            REFERENCES Radnik (ID_Radnika)
+        FOREIGN KEY (ID_Artikla)
+            REFERENCES Artikl (ID_Artikla)
     )`, (err) => {
         if (err) {
             console.log(err);
         }
     });
     db.run(`CREATE TABLE IF NOT EXISTS Razduzenje (
-        ID_Razduzenja INT PRIMARY KEY,
-        ID_Radnika INT NOT NULL,
-        SifraArtikla INT NOT NULL,
+        ID_Razduzenja INTEGER PRIMARY KEY,
+        ID_Radnika INTEGER NOT NULL,
+        ID_Artikla INTEGER NOT NULL,
         Kolicina FLOAT NOT NULL,
         FOREIGN KEY (ID_Radnika)
             REFERENCES Radnik (ID_Radnika),
-        FOREIGN KEY (SifraArtikla)
-            REFERENCES Artikl (SifraArtikla)
+        FOREIGN KEY (ID_Artikla)
+            REFERENCES Artikl (ID_Artikla)
     )`, (err) => {
         if (err) {
             console.log(err);

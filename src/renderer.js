@@ -5,10 +5,16 @@ function createTable(data, tableID) {
     let thead = table.createTHead();
     let headerData = Object.keys(data[0]);
     headerHTML = '<tr>';
-    headerHTML += '<th></th>';
+    let pk = true;
     for (let key of headerData) {
-        headerHTML += `<th>${key}</th>`;
+        if (pk) {
+            headerHTML += `<th style="display: none;">${key}</th>`;
+            pk = false;
+        } else {
+            headerHTML += `<th>${key}</th>`;
+        }
     }
+    headerHTML += '<th></th><th></th>';
     headerHTML += '</tr>';
     thead.innerHTML = headerHTML;
     table.appendChild(thead);
@@ -19,10 +25,17 @@ function createTable(data, tableID) {
         let row = tbody.insertRow();
         let rowData = Object.values(obj);
         let rowHTML = '';
+        let pk = true;
         for (let value of rowData) {
-            rowHTML += `<td>${value}</td>`;
+            if (pk) {
+                rowHTML += `<td class="value" style="display: none;">${value}</td>`;
+                pk = false;
+            } else {
+                rowHTML += `<td class="value">${value}</td>`;
+            }
         }
-        rowHTML += '<button type="button" class="rowMenu">X</button>';
+        rowHTML += '<td><button type="button" class="deleteRow">X</button></td>';
+        rowHTML += '<td><button type="button" class="editRow">E</button></td>';
         row.innerHTML = rowHTML;
         tbody.appendChild(row);
     }
