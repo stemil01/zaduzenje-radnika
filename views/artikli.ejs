@@ -45,18 +45,20 @@
                     let JedinicaMere = $values.eq(3).text();
                     let Cena = $values.eq(4).text();
 
+                    ipcRenderer.send("retrieve-Artikl", ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena);
+
                     let rowHMTL =  `<td style="display: none;" id="edit_ID_Artikla">${ID_Artikla}</td>
                                     <td>
-                                        <input type="number" name="SifraArtikla" id="SifraArtikla" value=${SifraArtikla} required>
+                                        <input type="number" name="SifraArtikla" id="SifraArtikla" value="${SifraArtikla}" required>
                                     </td>
                                     <td>
-                                        <input type="text" name="Naziv" id="Naziv" value=${Naziv} required>
+                                        <input type="text" name="Naziv" id="Naziv" value="${Naziv}" required>
                                     </td>
                                     <td>
-                                        <input type="text" name="JedinicaMere" id="JedinicaMere" value=${JedinicaMere} required>
+                                        <input type="text" name="JedinicaMere" id="JedinicaMere" value="${JedinicaMere}" required>
                                     </td>
                                     <td>
-                                        <input type="number" name="Cena" id="Cena" value=${Cena} required>
+                                        <input type="number" name="Cena" id="Cena" value="${Cena}" required>
                                     </td>
                                     <td>
                                         <button type="button" id="confirmEdit">Potvrdi</button>
@@ -64,8 +66,8 @@
                                     <td>
                                         <button type="button" id="cancelEdit">Ponisti</button>
                                     </td>`;
-                    $row.html(rowHMTL);
 
+                    $row.html(rowHMTL);
                 });
                 
                 $(document).on("click", "#confirmEdit", function() {
@@ -78,35 +80,10 @@
                     let Cena = document.getElementById("Cena").value;
 
                     ipcRenderer.send("edit-Artikl", ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena);
-
-                    // let rowHMTL =  `<td class="value">${SifraArtikla}</td>
-                    //                 <td class="value">${Naziv}</td>
-                    //                 <td class="value">${JedinicaMere}</td>
-                    //                 <td class="value">${Cena}</td>
-                    //                 <td><button type="button" class="deleteRow">X</button></td>
-                    //                 <td><button type="button" class="editRow">E</button></td>`;
-
-                    // $row.html(rowHMTL);
                 });
 
                 $(document).on("click", "#cancelEdit", function() {
-                    var $row = $(this).closest("tr");
-
-                    let ID_Artikla = $("#edit_ID_Artikla").html();
-                    let SifraArtikla = document.getElementById("SifraArtikla").value;
-                    let Naziv = document.getElementById("Naziv").value;
-                    let JedinicaMere = document.getElementById("JedinicaMere").value;
-                    let Cena = document.getElementById("Cena").value;
-
-                    let rowHMTL =  `<td class="value" style="display: none;">${ID_Artikla}</td>
-                                    <td class="value">${SifraArtikla}</td>
-                                    <td class="value">${Naziv}</td>
-                                    <td class="value">${JedinicaMere}</td>
-                                    <td class="value">${Cena}</td>
-                                    <td><button type="button" class="deleteRow">X</button></td>
-                                    <td><button type="button" class="editRow">E</button></td>`;
-
-                    $row.html(rowHMTL);
+                    ipcRenderer.send("reload-page");
                 });
             });
         </script>

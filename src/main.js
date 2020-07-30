@@ -85,4 +85,8 @@ app.on('ready', () => {
                             win.reload();
                         });
     });
+
+    ipcMain.on("reload-page", () => {
+        win.reload();
+    });
 });
