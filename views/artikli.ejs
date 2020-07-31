@@ -38,14 +38,13 @@
                 $(document).on("click", ".editRow", function() {
                     var $row = $(this).closest("tr");
                     var $values = $row.find(".value");
+                    var prevHTML = $row.html();
 
                     let ID_Artikla = $values.eq(0).text();
                     let SifraArtikla = $values.eq(1).text();
                     let Naziv = $values.eq(2).text();
                     let JedinicaMere = $values.eq(3).text();
                     let Cena = $values.eq(4).text();
-
-                    ipcRenderer.send("retrieve-Artikl", ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena);
 
                     let rowHMTL =  `<td style="display: none;" id="edit_ID_Artikla">${ID_Artikla}</td>
                                     <td>
@@ -64,7 +63,7 @@
                                         <button type="button" id="confirmEdit">Potvrdi</button>
                                     </td>
                                     <td>
-                                        <button type="button" id="cancelEdit">Ponisti</button>
+                                        <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Artikla}', '${SifraArtikla}', '${Naziv}', '${JedinicaMere}', '${Cena}')">Ponisti</button>
                                     </td>`;
 
                     $row.html(rowHMTL);
@@ -80,12 +79,33 @@
                     let Cena = document.getElementById("Cena").value;
 
                     ipcRenderer.send("edit-Artikl", ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena);
+
+                    let rowHMTL =  `<td class="value" style="display: none;">${ID_Artikla}</td>
+                                    <td class="value">${SifraArtikla}</td>
+                                    <td class="value">${Naziv}</td>
+                                    <td class="value">${JedinicaMere}</td>
+                                    <td class="value">${Cena}</td>
+                                    <td><button type="button" class="deleteRow">X</button></td>
+                                    <td><button type="button" class="editRow">E</button></td>`;
+
+                    $row.html(rowHMTL);
                 });
 
-                $(document).on("click", "#cancelEdit", function() {
-                    ipcRenderer.send("reload-page");
+                // $(document).on("click", "#cancelEdit", function() {
+                //     ipcRenderer.send("reload-page");
                 });
-            });
+
+                function cancelEdit(btn, ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena) {
+                    let rowHMTL =  `<td class="value" style="display: none;">${ID_Artikla}</td>
+                                    <td class="value">${SifraArtikla}</td>
+                                    <td class="value">${Naziv}</td>
+                                    <td class="value">${JedinicaMere}</td>
+                                    <td class="value">${Cena}</td>
+                                    <td><button type="button" class="deleteRow">X</button></td>
+                                    <td><button type="button" class="editRow">E</button></td>`;
+
+                    $(btn).closest("tr").html(rowHMTL);
+                }
         </script>
     </body>
     <footer>

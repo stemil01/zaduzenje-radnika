@@ -82,11 +82,6 @@ app.on('ready', () => {
                             if (err) {
                                 dialog.showErrorBox("Pogresno uneti podaci", err.message);
                             }
-                            win.reload();
                         });
-    });
-
-    ipcMain.on("reload-page", () => {
-        win.reload();
     });
 });
