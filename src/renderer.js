@@ -1,5 +1,6 @@
-function createTable(data, tableID) {
+function createTable(tableID, data) {
     let table = document.getElementById(tableID);
+    table.innerHTML = '';
 
     // creating table header
     let thead = table.createTHead();
@@ -11,7 +12,7 @@ function createTable(data, tableID) {
             headerHTML += `<th style="display: none;">${key}</th>`;
             pk = false;
         } else {
-            headerHTML += `<th>${key}</th>`;
+            headerHTML += `<th class="headerCell">${key}</th>`;
         }
     }
     headerHTML += '<th></th><th></th>';

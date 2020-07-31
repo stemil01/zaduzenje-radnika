@@ -14,9 +14,11 @@
             const { ipcRenderer, dialog } = require('electron');
             const $ = require('jquery');
 
+            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true;
+
             ipcRenderer.send("list-Artikl");
             ipcRenderer.on("rows-Artikl", (evt, rows) => {
-                createTable(rows, "listaArtikala");
+                createTable("listaArtikala", rows);
             });
 
             function openWin_Artikl() {
@@ -91,21 +93,49 @@
                     $row.html(rowHMTL);
                 });
 
-                // $(document).on("click", "#cancelEdit", function() {
-                //     ipcRenderer.send("reload-page");
+                $(document).on("click", ".headerCell", function() {
+                    var attribute = $(this).text();
+                    let desc;
+                    switch (attribute) {
+                        case "SifraArtikla":
+                            desc = descSifraArtikla;
+                            descSifraArtikla = !descSifraArtikla;
+                            break;
+                        case "Naziv":
+                            desc = descNaziv;
+                            descNaziv = !descNaziv;
+                            break;
+                        case "JedinicaMere":
+                            desc = descJedinicaMere;
+                            descJedinicaMere = !descJedinicaMere;
+                            break;
+                        case "Cena":
+                            desc = descCena;
+                            descCena = !descCena;
+                            break;
+                        default:
+                            console.log('Ne poklapa se ime kolone');
+                            break;
+                    }
+
+                    ipcRenderer.send("sort-Artikl", attribute, desc);
+                    ipcRenderer.on("sort-rows-Artikl", (evt, rows) => {
+                        createTable("listaArtikala", rows);
+                    });
                 });
+            });
 
-                function cancelEdit(btn, ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena) {
-                    let rowHMTL =  `<td class="value" style="display: none;">${ID_Artikla}</td>
-                                    <td class="value">${SifraArtikla}</td>
-                                    <td class="value">${Naziv}</td>
-                                    <td class="value">${JedinicaMere}</td>
-                                    <td class="value">${Cena}</td>
-                                    <td><button type="button" class="deleteRow">X</button></td>
-                                    <td><button type="button" class="editRow">E</button></td>`;
+            function cancelEdit(btn, ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena) {
+                let rowHMTL =  `<td class="value" style="display: none;">${ID_Artikla}</td>
+                                <td class="value">${SifraArtikla}</td>
+                                <td class="value">${Naziv}</td>
+                                <td class="value">${JedinicaMere}</td>
+                                <td class="value">${Cena}</td>
+                                <td><button type="button" class="deleteRow">X</button></td>
+                                <td><button type="button" class="editRow">E</button></td>`;
 
-                    $(btn).closest("tr").html(rowHMTL);
-                }
+                $(btn).closest("tr").html(rowHMTL);
+            }
         </script>
     </body>
     <footer>

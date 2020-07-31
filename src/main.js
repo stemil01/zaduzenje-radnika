@@ -84,4 +84,16 @@ app.on('ready', () => {
                             }
                         });
     });
+
+    ipcMain.on("sort-Artikl", (evt, attribute, desc) => {
+        let sort = desc ? "DESC" : "ASC";
+        database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
+                        FROM Artikl
+                        ORDER BY ` + attribute + ` ` + sort, (err, rows) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("sort-rows-Artikl", rows);
+                        });
+    });
 });
