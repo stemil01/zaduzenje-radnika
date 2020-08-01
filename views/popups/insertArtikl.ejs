@@ -8,38 +8,42 @@
     <body>
         <form>
             <label for="SifraArtikla">Sifra artikla:</label>
-            <input type="number" name="SifraArtikla" id="SifraArtikla"><br>
+            <input type="number" name="SifraArtikla" id="SifraArtikla" required><br>
 
             <label for="Naziv">Naziv:</label>
-            <input type="text" name="Naziv" id="Naziv"><br>
+            <input type="text" name="Naziv" id="Naziv" required><br>
 
             <label for="JedinicaMere">Jedinica mere:</label>
-            <input type="text" name="JedinicaMere" id="JedinicaMere"><br>
+            <input type="text" name="JedinicaMere" id="JedinicaMere" required><br>
 
             <label for="Cena">Cena: </label>
-            <input type="number" name="Cena" id="Cena"><br>
+            <input type="number" name="Cena" id="Cena" required><br>
 
-            <button type="submit" onclick="insert_Artikl()">Unesi</button>
+            <input type="submit" value="Unesi">
+            <!-- <button type="submit" onclick="insert_Artikl()" required>Unesi</button> -->
         </form>
 
         <button type="menu" onclick="closeWin()">Zatvori</button>
                 
     <script>
         const { ipcRenderer, remote } = require('electron');
-
-        function insert_Artikl() {
-            let SifraArtikla = document.getElementById("SifraArtikla").value;
-            let Naziv = document.getElementById("Naziv").value;
-            let JedinicaMere = document.getElementById("JedinicaMere").value;
-            let Cena = document.getElementById("Cena").value;
-
-            ipcRenderer.send("insert-Artikl", SifraArtikla, Naziv, JedinicaMere, Cena);
-        }
+        const $ = require('jquery');
 
         function closeWin() {
             let window = remote.getCurrentWindow();
             window.close();
         }
+
+        $(document).ready(function() {
+            $(document).on("submit", "form", function() {
+                let SifraArtikla = document.getElementById("SifraArtikla").value;
+                let Naziv = document.getElementById("Naziv").value;
+                let JedinicaMere = document.getElementById("JedinicaMere").value;
+                let Cena = document.getElementById("Cena").value;
+
+                ipcRenderer.send("insert-Artikl", SifraArtikla, Naziv, JedinicaMere, Cena);
+            });
+        });
     </script>
     </body>
 </html>

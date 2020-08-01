@@ -8,6 +8,7 @@
         <table id="listaArtikala"></table>
 
         <button type="button" onclick="openWin_Artikl()">Dodaj artkl</button>
+        <form id="editForm"></form>
 
         <script src="../src/renderer.js"></script>
         <script>
@@ -50,19 +51,19 @@
 
                     let rowHMTL =  `<td style="display: none;" id="edit_ID_Artikla">${ID_Artikla}</td>
                                     <td>
-                                        <input type="number" name="SifraArtikla" id="SifraArtikla" value="${SifraArtikla}" required>
+                                        <input type="number" name="SifraArtikla" id="SifraArtikla" value="${SifraArtikla}" required form="editForm">
                                     </td>
                                     <td>
-                                        <input type="text" name="Naziv" id="Naziv" value="${Naziv}" required>
+                                        <input type="text" name="Naziv" id="Naziv" value="${Naziv}" required form="editForm">
                                     </td>
                                     <td>
-                                        <input type="text" name="JedinicaMere" id="JedinicaMere" value="${JedinicaMere}" required>
+                                        <input type="text" name="JedinicaMere" id="JedinicaMere" value="${JedinicaMere}" required form="editForm">
                                     </td>
                                     <td>
-                                        <input type="number" name="Cena" id="Cena" value="${Cena}" required>
+                                        <input type="number" name="Cena" id="Cena" value="${Cena}" required form="editForm">
                                     </td>
                                     <td>
-                                        <button type="button" id="confirmEdit">Potvrdi</button>
+                                        <button type="submit" id="confirmEdit" form="editForm">Potvrdi</button>
                                     </td>
                                     <td>
                                         <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Artikla}', '${SifraArtikla}', '${Naziv}', '${JedinicaMere}', '${Cena}')">Ponisti</button>
@@ -71,7 +72,7 @@
                     $row.html(rowHMTL);
                 });
                 
-                $(document).on("click", "#confirmEdit", function() {
+                $(document).on("submit", "form#editForm", function() {
                     var $row = $(this).closest("tr");
 
                     let ID_Artikla = $("#edit_ID_Artikla").html();
