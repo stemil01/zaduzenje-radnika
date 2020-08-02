@@ -85,11 +85,12 @@ app.on('ready', () => {
                         });
     });
 
-    ipcMain.on("sort-Artikl", (evt, attribute, desc) => {
+    ipcMain.on("sort-Artikl", (evt, attribute, desc, key, searchBy) => {
         let sort = desc ? "DESC" : "ASC";
         database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
                         FROM Artikl
-                        ORDER BY ` + attribute + ` ` + sort, (err, rows) => {
+                        WHERE ${searchBy} LIKE '${key}%'
+                        ORDER BY ${attribute} ${sort}`, (err, rows) => {
                             if (err) {
                                 throw err;
                             }

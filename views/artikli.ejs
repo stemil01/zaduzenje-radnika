@@ -113,6 +113,8 @@
                 $(document).on("click", ".headerCell", function() {
                     var attribute = $(this).text();
                     let desc;
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
                     switch (attribute) {
                         case "SifraArtikla":
                             desc = descSifraArtikla;
@@ -135,7 +137,7 @@
                             break;
                     }
 
-                    ipcRenderer.send("sort-Artikl", attribute, desc);
+                    ipcRenderer.send("sort-Artikl", attribute, desc, key, searchBy);
                     ipcRenderer.on("sort-rows-Artikl", (evt, rows) => {
                         createTable("listaArtikala", rows);
                     });
