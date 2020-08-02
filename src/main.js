@@ -108,7 +108,18 @@ app.on('ready', () => {
                         });
     });
 
+    // RADNIK
+    ipcMain.on("list-Radnik", () => {
+        database.db.all(`SELECT PrezimeIme
+                        FROM Radnik`, (err, rows) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("rows-Radnik", rows);
+                        });
+    });
 
+    // OPSTE
     ipcMain.on("error", (evt, title, message) => {
         dialog.showErrorBox(title, message);
     });
