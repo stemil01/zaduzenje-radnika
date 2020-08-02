@@ -96,4 +96,20 @@ app.on('ready', () => {
                             win.webContents.send("sort-rows-Artikl", rows);
                         });
     });
+
+    ipcMain.on("search-Artikl", (evt, key, searchBy) => {
+        database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
+                        FROM Artikl
+                        WHERE ${searchBy} LIKE '${key}%'`, (err, rows) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("search-result-Artikl", rows);
+                        });
+    });
+
+
+    ipcMain.on("error", (evt, title, message) => {
+        dialog.showErrorBox(title, message);
+    });
 });

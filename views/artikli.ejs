@@ -5,6 +5,17 @@
     </head>
     <body>
         <%- include('partials/navigation') %>
+
+        <form id="searchForm">
+            <input id="searchInput" placeholder="Pretrazi po...">
+            <select id="searchBy">
+                <option value="SifraArtikla">Sifri Artikla</option>
+                <option value="Naziv" selected>Nazivu</option>
+                <option value="JedinicaMere">Jedinici mere</option>
+                <option value="Cena">Ceni</option>
+            </select>
+        </form>
+
         <table id="listaArtikala"></table>
 
         <button type="button" onclick="openWin_Artikl()">Dodaj artkl</button>
@@ -12,10 +23,11 @@
 
         <script src="../src/renderer.js"></script>
         <script>
-            const { ipcRenderer, dialog } = require('electron');
+            const { ipcRenderer, remote, dialog } = require('electron');
             const $ = require('jquery');
 
             let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true;
+            let prev;
 
             ipcRenderer.send("list-Artikl");
             ipcRenderer.on("rows-Artikl", (evt, rows) => {
@@ -63,7 +75,7 @@
                                         <input type="number" name="Cena" id="Cena" value="${Cena}" required form="editForm">
                                     </td>
                                     <td>
-                                        <button type="submit" id="confirmEdit" form="editForm">Potvrdi</button>
+                                        <button type="button" id="confirmEdit" form="editForm">Potvrdi</button>
                                     </td>
                                     <td>
                                         <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Artikla}', '${SifraArtikla}', '${Naziv}', '${JedinicaMere}', '${Cena}')">Ponisti</button>
@@ -72,7 +84,7 @@
                     $row.html(rowHMTL);
                 });
                 
-                $(document).on("submit", "form#editForm", function() {
+                $(document).on("click", "#confirmEdit", function() {
                     var $row = $(this).closest("tr");
 
                     let ID_Artikla = $("#edit_ID_Artikla").html();
@@ -81,17 +93,21 @@
                     let JedinicaMere = document.getElementById("JedinicaMere").value;
                     let Cena = document.getElementById("Cena").value;
 
-                    ipcRenderer.send("edit-Artikl", ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena);
+                    if (ID_Artikla == '' || SifraArtikla == '' || Naziv == '' || JedinicaMere == '' || Cena == '') {
+                        ipcRenderer.send("error", 'Greska pri unosu podataka', 'Vrednosti ne mogu da budu prazne');
+                    } else {
+                        ipcRenderer.send("edit-Artikl", ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena);
 
-                    let rowHMTL =  `<td class="value" style="display: none;">${ID_Artikla}</td>
-                                    <td class="value">${SifraArtikla}</td>
-                                    <td class="value">${Naziv}</td>
-                                    <td class="value">${JedinicaMere}</td>
-                                    <td class="value">${Cena}</td>
-                                    <td><button type="button" class="deleteRow">X</button></td>
-                                    <td><button type="button" class="editRow">E</button></td>`;
+                        let rowHMTL =  `<td class="value" style="display: none;">${ID_Artikla}</td>
+                                        <td class="value">${SifraArtikla}</td>
+                                        <td class="value">${Naziv}</td>
+                                        <td class="value">${JedinicaMere}</td>
+                                        <td class="value">${Cena}</td>
+                                        <td><button type="button" class="deleteRow">X</button></td>
+                                        <td><button type="button" class="editRow">E</button></td>`;
 
-                    $row.html(rowHMTL);
+                        $row.html(rowHMTL);
+                    }
                 });
 
                 $(document).on("click", ".headerCell", function() {
@@ -121,6 +137,27 @@
 
                     ipcRenderer.send("sort-Artikl", attribute, desc);
                     ipcRenderer.on("sort-rows-Artikl", (evt, rows) => {
+                        createTable("listaArtikala", rows);
+                    });
+                });
+
+                $(document).on("change keyup paste", "#searchInput", debounce(() => {
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
+
+                    ipcRenderer.send("search-Artikl", key, searchBy);
+                    ipcRenderer.on("search-result-Artikl", (evt, rows) => {
+                        createTable("listaArtikala", rows);
+                    });
+
+                }, 350));
+
+                $(document).on("change", "#searchBy", function() {
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
+
+                    ipcRenderer.send("search-Artikl", key, searchBy);
+                    ipcRenderer.on("search-result-Artikl", (evt, rows) => {
                         createTable("listaArtikala", rows);
                     });
                 });
