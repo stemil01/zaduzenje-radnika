@@ -31,21 +31,6 @@ app.on('ready', () => {
     });
 
     // ARTIKL
-    ipcMain.on("openWin_Artikl", () => {
-        let insertWin = new BrowserWindow({
-            width: 600,
-            height: 200,
-            webPreferences: {
-                nodeIntegration: true,
-                enableRemoteModule: true
-            }
-        });
-        insertWin.removeMenu();
-
-        insertWin.loadFile('views/popups/insertArtikl.ejs');
-        insertWin.webContents.openDevTools();
-    });
-
     ipcMain.on("insert-Artikl", (evt, SifraArtikla, Naziv, JedinicaMere, Cena) => {
         database.db.run(`INSERT INTO Artikl(SifraArtikla, Naziv, JedinicaMere, Cena)
                         VALUES(?, ?, ?, ?)`, [SifraArtikla, Naziv, JedinicaMere, Cena], (err) => {
@@ -67,7 +52,7 @@ app.on('ready', () => {
             database.db.run(`DELETE FROM Artikl
                             WHERE ID_Artikla=?`, ID_Artikla, (err) => {
                                 if (err) {
-                                    dialog.showErrorBox("Greska pri brisanju", err.message);
+                                    throw err;
                                 } else {
                                     win.webContents.send("deletedRow");
                                 }
@@ -80,7 +65,9 @@ app.on('ready', () => {
                         SET SifraArtikla=?, Naziv=?, JedinicaMere=?, Cena=?
                         WHERE ID_Artikla=?`, [SifraArtikla, Naziv, JedinicaMere, Cena, ID_Artikla], (err) => {
                             if (err) {
-                                dialog.showErrorBox("Pogresno uneti podaci", err.message);
+                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                            } else {
+                                win.webContents.send("edited-Artikl");
                             }
                         });
     });
@@ -111,7 +98,7 @@ app.on('ready', () => {
 
     // RADNIK
     ipcMain.on("list-Radnik", () => {
-        database.db.all(`SELECT PrezimeIme
+        database.db.all(`SELECT ID_Radnika, PrezimeIme
                         FROM Radnik`, (err, rows) => {
                             if (err) {
                                 throw err;
@@ -120,7 +107,65 @@ app.on('ready', () => {
                         });
     });
 
+
+    ipcMain.on("insert-Radnik", (evt, PrezimeIme) => {
+        console.log(PrezimeIme);
+        database.db.run(`INSERT INTO Radnik(PrezimeIme)
+                        VALUES(?)`, PrezimeIme, (err) => {
+                            if (err) {
+                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                            } else {
+                                win.reload();
+                            }
+                        });
+    });
+
+    ipcMain.on("delete-Radnik", (evt, ID_Radnika) => {
+        let options = {
+            buttons: ["Da", "Ne"],
+            message: "Da ste sigurni da zelite da obrisete?"
+        };
+        let response = dialog.showMessageBoxSync(options);
+        if (response == 0) {
+            database.db.run(`DELETE FROM Radnik
+                            WHERE ID_Radnika=?`, ID_Radnika, (err) => {
+                                if (err) {
+                                    throw err;
+                                } else {
+                                    win.webContents.send("deletedRow");
+                                }
+                            });
+        }
+    });
+
+    ipcMain.on("edit-Radnik", (evt, ID_Radnika, PrezimeIme) => {
+        database.db.run(`UPDATE Radnik
+                        SET PrezimeIme=?
+                        WHERE ID_Radnika=?`, [PrezimeIme, ID_Radnika], (err) => {
+                            if (err) {
+                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                            } else {
+                                win.webContents.send("edited-Radnik");
+                            }
+                        });
+    });
+
     // OPSTE
+    ipcMain.on("open-insert-window", (evt, path) => {
+        let insertWin = new BrowserWindow({
+            width: 600,
+            height: 200,
+            webPreferences: {
+                nodeIntegration: true,
+                enableRemoteModule: true
+            }
+        });
+        insertWin.removeMenu();
+
+        insertWin.loadFile(path);
+        insertWin.webContents.openDevTools();
+    });
+
     ipcMain.on("error", (evt, title, message) => {
         dialog.showErrorBox(title, message);
     });

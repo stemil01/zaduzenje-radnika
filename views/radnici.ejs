@@ -6,15 +6,93 @@
     <body>
         <%- include('partials/navigation') %>
         <table id="listaRadnika"></table>
+
+        <button type="button" onclick="openWin_Radnik()">Dodaj radnika</button>
+
         <script src="../src/renderer.js"></script>
         <script>
             const { ipcRenderer } = require('electron');
             const $ = require('jquery');
 
+            let desc = true;
+
             ipcRenderer.send("list-Radnik");
             ipcRenderer.on("rows-Radnik", (evt, rows) => {
                 createTable("listaRadnika", rows);
             });
+
+            function openWin_Radnik() {
+                ipcRenderer.send("open-insert-window", 'views/popups/insertRadnik.ejs');
+            }
+
+            $(document).ready(function() {
+                $(document).on("click", ".deleteRow", function() {
+                    let $row = $(this).closest("tr");
+                    let ID_Radnika = $row.find("td:first").text();
+                    
+                    ipcRenderer.send("delete-Radnik", ID_Radnika);
+                    ipcRenderer.on("deletedRow", () => {
+                        $row.remove();
+                    });
+                });
+
+                $(document).on("click", ".editRow", function() {
+                    let $row = $(this).closest("tr");
+                    let $values = $row.find("td");
+
+                    let ID_Radnika = $values.eq(0).text();
+                    let PrezimeIme = $values.eq(1).text();
+
+                    let rowHTML = `<td style="display: none;" id="ID_Radnika">${ID_Radnika}</td>
+                                    <td>
+                                        <input type="text" id="PrezimeIme" value="${PrezimeIme}" required>
+                                    </td>
+                                    <td>
+                                        <button type="button" id="confirmEdit">Potvrdi</button>
+                                    </td>
+                                    <td>
+                                        <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Radnika}', '${PrezimeIme}')">Ponisti</button>
+                                    </td>`;
+                    $row.html(rowHTML);
+                });
+
+                $(document).on("click", "#confirmEdit", function() {
+                    var $row = $(this).closest("tr");
+
+                    let ID_Radnika = $("#ID_Radnika").html();
+                    let PrezimeIme = $("#PrezimeIme").val();
+
+                    if (PrezimeIme == '') {
+                        ipcRenderer.send("error", 'Greska pri unosu podataka', 'Vrednosti ne mogu da budu prazne');
+                    } else {
+                        ipcRenderer.send("edit-Radnik", ID_Radnika, PrezimeIme);
+                        ipcRenderer.on("edited-Radnik", () => {
+                            let rowHMTL =  `<td class="value" style="display: none;">${ID_Radnika}</td>
+                                            <td class="value">${PrezimeIme}</td>
+                                            <td><button type="button" class="deleteRow">X</button></td>
+                                            <td><button type="button" class="editRow">E</button></td>`;
+
+                            $row.html(rowHMTL);
+                        });
+                    }
+                });
+
+                $(document).on("click", ".headerCell", function() {
+                    let attribute = $(this).text();
+                    desc = !desc;
+
+                    ipcRenderer.send("sort-Radnik", attribute, desc);
+                });
+            });
+
+            function cancelEdit(btn, ID_Radnika, PrezimeIme) {
+                let rowHMTL =  `<td class="value" style="display: none;">${ID_Radnika}</td>
+                                <td class="value">${PrezimeIme}</td>
+                                <td><button type="button" class="deleteRow">X</button></td>
+                                <td><button type="button" class="editRow">E</button></td>`;
+
+                $(btn).closest("tr").html(rowHMTL);
+            }
         </script>
     </body>
     <footer>

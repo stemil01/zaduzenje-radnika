@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../style.css">
+        <title>Unos radnika</title>
+    </head>
+    <body>
+        <form onsubmit="insert_Radnik()">
+            <label for="PrezimeIme">Prezime i ime: </label>
+            <input id="PrezimeIme" type="text" required><br>
+
+            <input type="submit" value="Unesi">
+        </form> 
+        <button type="button" onclick="closeWin()">Zatvori</button>
+        
+        <script>
+            const { ipcRenderer, remote } = require('electron');
+
+            function insert_Radnik() {
+                let PrezimeIme = document.getElementById("PrezimeIme").value;
+                ipcRenderer.send("insert-Radnik", PrezimeIme);
+            }
+
+            function closeWin() {
+                let win = remote.getCurrentWindow();
+                win.close();
+            }
+        </script>
+    </body>
+</html>

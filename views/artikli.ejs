@@ -35,15 +35,14 @@
             });
 
             function openWin_Artikl() {
-                ipcRenderer.send("openWin_Artikl");
+                ipcRenderer.send("open-insert-window", 'views/popups/insertArtikl.ejs');
             }
 
             $(document).ready(function() {
                 $(document).on("click", ".deleteRow", function() {
                     var $row = $(this).closest("tr");
-                    var $values = $row.find("td");
+                    let ID_Artikla = $row.find("td:first").text();
 
-                    let ID_Artikla = $values.eq(0).text();
                     ipcRenderer.send("delete-Artikl", ID_Artikla);
                     ipcRenderer.on("deletedRow", () => {
                         $row.remove(); // ovo je potencijalno mesto gde moze da dodje do neke greske, proveri!
@@ -61,7 +60,7 @@
                     let JedinicaMere = $values.eq(3).text();
                     let Cena = $values.eq(4).text();
 
-                    let rowHMTL =  `<td style="display: none;" id="edit_ID_Artikla">${ID_Artikla}</td>
+                    let rowHMTL =  `<td style="display: none;" id="ID_Artikla">${ID_Artikla}</td>
                                     <td>
                                         <input type="number" name="SifraArtikla" id="SifraArtikla" value="${SifraArtikla}" required form="editForm">
                                     </td>
@@ -87,26 +86,27 @@
                 $(document).on("click", "#confirmEdit", function() {
                     var $row = $(this).closest("tr");
 
-                    let ID_Artikla = $("#edit_ID_Artikla").html();
-                    let SifraArtikla = document.getElementById("SifraArtikla").value;
-                    let Naziv = document.getElementById("Naziv").value;
-                    let JedinicaMere = document.getElementById("JedinicaMere").value;
-                    let Cena = document.getElementById("Cena").value;
+                    let ID_Artikla = $("#ID_Artikla").html();
+                    let SifraArtikla = $("#SifraArtikla").val();
+                    let Naziv = $("#Naziv").val();
+                    let JedinicaMere = $("#JedinicaMere").val();
+                    let Cena = $("#Cena").val();
 
-                    if (ID_Artikla == '' || SifraArtikla == '' || Naziv == '' || JedinicaMere == '' || Cena == '') {
+                    if (SifraArtikla == '' || Naziv == '' || JedinicaMere == '' || Cena == '') {
                         ipcRenderer.send("error", 'Greska pri unosu podataka', 'Vrednosti ne mogu da budu prazne');
                     } else {
                         ipcRenderer.send("edit-Artikl", ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena);
+                        ipcRenderer.on("edited-Artikl", () => {
+                            let rowHMTL =  `<td class="value" style="display: none;">${ID_Artikla}</td>
+                                            <td class="value">${SifraArtikla}</td>
+                                            <td class="value">${Naziv}</td>
+                                            <td class="value">${JedinicaMere}</td>
+                                            <td class="value">${Cena}</td>
+                                            <td><button type="button" class="deleteRow">X</button></td>
+                                            <td><button type="button" class="editRow">E</button></td>`;
 
-                        let rowHMTL =  `<td class="value" style="display: none;">${ID_Artikla}</td>
-                                        <td class="value">${SifraArtikla}</td>
-                                        <td class="value">${Naziv}</td>
-                                        <td class="value">${JedinicaMere}</td>
-                                        <td class="value">${Cena}</td>
-                                        <td><button type="button" class="deleteRow">X</button></td>
-                                        <td><button type="button" class="editRow">E</button></td>`;
-
-                        $row.html(rowHMTL);
+                            $row.html(rowHMTL);
+                        });
                     }
                 });
 
