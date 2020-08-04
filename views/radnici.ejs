@@ -5,6 +5,13 @@
     </head>
     <body>
         <%- include('partials/navigation') %>
+
+        <input id="searchInput" placeholder="Pretrazi po...">
+        <select id="searchBy">
+            <option value="Prezime" selected>Prezimenu</option>
+            <option value="Ime">Imenu</option>
+        </select>
+
         <table id="listaRadnika"></table>
 
         <button type="button" onclick="openWin_Radnik()">Dodaj radnika</button>
@@ -22,7 +29,7 @@
             });
 
             function openWin_Radnik() {
-                ipcRenderer.send("open-insert-window", 'views/popups/insertRadnik.ejs');
+                ipcRenderer.send("open-insert-window", 'views/popups/insertRadnik.html');
             }
 
             $(document).ready(function() {
@@ -79,9 +86,35 @@
 
                 $(document).on("click", ".headerCell", function() {
                     let attribute = $(this).text();
-                    desc = !desc;
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
 
-                    ipcRenderer.send("sort-Radnik", attribute, desc);
+                    desc = !desc;
+                    ipcRenderer.send("sort-Radnik", attribute, desc, key, searchBy);
+                    ipcRenderer.on("sort-rows-Radnik", (evt, rows) => {
+                        createTable("listaRadnika", rows);
+                    });
+                });
+
+                $(document).on("change keyup paste", "#searchInput", debounce(() => {
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
+
+                    ipcRenderer.send("search-Radnik", key, searchBy);
+                    ipcRenderer.on("search-result-Radnik", (evt, rows) => {
+                        createTable("listaRadnika", rows);
+                    });
+
+                }, 350));
+
+                $(document).on("change", "#searchBy", function() {
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
+
+                    ipcRenderer.send("search-Radnik", key, searchBy);
+                    ipcRenderer.on("search-result-Radnik", (evt, rows) => {
+                        createTable("listaRadnika", rows);
+                    });
                 });
             });
 

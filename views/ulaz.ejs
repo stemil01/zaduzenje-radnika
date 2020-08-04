@@ -5,6 +5,24 @@
     </head>
     <body>
         <%- include('partials/navigation') %>
+
+        <table id="listaUlaza"></table>
+
+        <button type="button" onclick="openWin_Ulaz()">Unos u skladiste</button>
+
+        <script src="../src/renderer.js"></script>
+        <script>
+            const { ipcRenderer } = require('electron');
+
+            ipcRenderer.send("list-Ulaz");
+            ipcRenderer.on("rows-Ulaz", (evt, rows) => {
+                createTable("listaUlaza", rows);
+            });
+
+            function openWin_Ulaz() {
+                ipcRenderer.send("open-insert-window", 'views/popups/insertUlaz.html');
+            }
+        </script>
     </body>
     <footer>
         <%- include('partials/footer') %>

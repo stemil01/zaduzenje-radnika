@@ -6,8 +6,6 @@ const { render } = require('ejs');
 const db = require('./db.js');
 
 app.on('ready', () => {
-    ejse.data('rows_Artikl', '');
-
     const win = new BrowserWindow({
         width: 1300,
         height: 800,
@@ -16,7 +14,6 @@ app.on('ready', () => {
             enableRemoteModule: true
         }
     });
-
     win.loadFile('views/main.ejs');
     win.webContents.openDevTools();
 
@@ -73,7 +70,7 @@ app.on('ready', () => {
     });
 
     ipcMain.on("sort-Artikl", (evt, attribute, desc, key, searchBy) => {
-        let sort = desc ? "DESC" : "ASC";
+        let sort = desc ? 'DESC' : 'ASC';
         database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
                         FROM Artikl
                         WHERE ${searchBy} LIKE '${key}%'
@@ -109,7 +106,6 @@ app.on('ready', () => {
 
 
     ipcMain.on("insert-Radnik", (evt, PrezimeIme) => {
-        console.log(PrezimeIme);
         database.db.run(`INSERT INTO Radnik(PrezimeIme)
                         VALUES(?)`, PrezimeIme, (err) => {
                             if (err) {
@@ -150,6 +146,50 @@ app.on('ready', () => {
                         });
     });
 
+    ipcMain.on("sort-Radnik", (evt, attribute, desc, key, searchBy) => {
+        let sort = desc ? 'DESC' : 'ASC';
+        if (searchBy == 'Ime') {
+            key = '% ' + key;
+        }
+
+        database.db.all(`SELECT ID_Radnika, PrezimeIme
+                        FROM Radnik
+                        WHERE PrezimeIme LIKE '${key}%'
+                        ORDER BY ${attribute} ${sort}`, (err, rows) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("sort-rows-Radnik", rows);
+                        });
+    });
+
+    ipcMain.on("search-Radnik", (evt, key, searchBy) => {
+        if (searchBy == 'Ime') {
+            key = '% ' + key;
+        }
+        database.db.all(`SELECT ID_Radnika, PrezimeIme
+                        FROM Radnik
+                        WHERE PrezimeIme LIKE '${key}%'`, (err, rows) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("search-result-Radnik", rows);
+                        });
+    });
+
+    // ULAZ
+    ipcMain.on("list-Ulaz", () => {
+        database.db.all(`SELECT U.ID_Ulaza, A.SifraArtikla, A.Naziv, A.JedinicaMere, U.Kolicina, U.Datum
+                        FROM Ulaz U, Artikl A
+                        WHERE U.ID_Artikla = A.ID_Artikla
+                        ORDER BY Datum DESC`, (err, rows) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("rows-Ulaz", rows);
+                        });
+    });
+
     // OPSTE
     ipcMain.on("open-insert-window", (evt, path) => {
         let insertWin = new BrowserWindow({
@@ -168,5 +208,9 @@ app.on('ready', () => {
 
     ipcMain.on("error", (evt, title, message) => {
         dialog.showErrorBox(title, message);
+    });
+
+    win.on('closed', () => {
+        app.quit();
     });
 });

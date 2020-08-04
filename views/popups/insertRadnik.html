@@ -6,7 +6,7 @@
         <title>Unos radnika</title>
     </head>
     <body>
-        <form onsubmit="insert_Radnik()">
+        <form id="insertRadnik">
             <label for="PrezimeIme">Prezime i ime: </label>
             <input id="PrezimeIme" type="text" required><br>
 
@@ -16,16 +16,20 @@
         
         <script>
             const { ipcRenderer, remote } = require('electron');
-
-            function insert_Radnik() {
-                let PrezimeIme = document.getElementById("PrezimeIme").value;
-                ipcRenderer.send("insert-Radnik", PrezimeIme);
-            }
+            const $ = require('jquery');
 
             function closeWin() {
                 let win = remote.getCurrentWindow();
                 win.close();
             }
+
+            $(document).ready(function() {
+                $(document).on("submit", "#insertRadnik", function(evt) {
+                    let PrezimeIme = $("#PrezimeIme").val();
+                    ipcRenderer.send("insert-Radnik", PrezimeIme);
+                });
+            });
+
         </script>
     </body>
 </html>

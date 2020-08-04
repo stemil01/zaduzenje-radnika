@@ -43,6 +43,7 @@ db.serialize(() => {
         ID_Ulaza INTEGER PRIMARY KEY,
         ID_Artikla INTEGER NOT NULL,
         Kolicina FLOAT NOT NULL,
+        Datum DATE NOT NULL,
         FOREIGN KEY (ID_Artikla)
             REFERENCES Artikl (ID_Artikla)
     )`, (err) => {

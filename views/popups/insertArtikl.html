@@ -6,7 +6,7 @@
         <title>Unos artikla</title>
     </head>
     <body>
-        <form onsubmit="insert_Artikl()">
+        <form id="insertArtikl">
             <label for="SifraArtikla">Sifra artikla:</label>
             <input type="number" name="SifraArtikla" id="SifraArtikla" required><br>
 
@@ -26,15 +26,22 @@
                 
     <script>
         const { ipcRenderer, remote } = require('electron');
+        const $ = require('jquery');
 
-        function insert_Artikl() {
-            let SifraArtikla = document.getElementById("SifraArtikla").value;
-            let Naziv = document.getElementById("Naziv").value;
-            let JedinicaMere = document.getElementById("JedinicaMere").value;
-            let Cena = document.getElementById("Cena").value;
+        $(document).ready(function() {
+            $(document).on("submit", "#insertArtikl", function() {
+                try {
+                    let SifraArtikla = document.getElementById("SifraArtikla").value;
+                    let Naziv = document.getElementById("Naziv").value;
+                    let JedinicaMere = document.getElementById("JedinicaMere").value;
+                    let Cena = document.getElementById("Cena").value;
 
-            ipcRenderer.send("insert-Artikl", SifraArtikla, Naziv, JedinicaMere, Cena);
-        }
+                    ipcRenderer.send("insert-Artikl", SifraArtikla, Naziv, JedinicaMere, Cena);
+                } catch(err) {
+                    console.error(err);
+                }
+            });
+        });
 
         function closeWin() {
             let window = remote.getCurrentWindow();
