@@ -178,16 +178,57 @@ app.on('ready', () => {
     });
 
     // ULAZ
+    ipcMain.on("req-SifraArtikla", (event) => {
+        database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv
+                        FROM Artikl`, (err, rows) => {
+                            if (err) {
+                                throw err;
+                            }
+                            event.sender.send("res-SifraArtikla", rows);
+                        });
+    });
+
     ipcMain.on("list-Ulaz", () => {
         database.db.all(`SELECT U.ID_Ulaza, A.SifraArtikla, A.Naziv, A.JedinicaMere, U.Kolicina, U.Datum
                         FROM Ulaz U, Artikl A
-                        WHERE U.ID_Artikla = A.ID_Artikla
+                        WHERE U.ID_Artikla=A.ID_Artikla
                         ORDER BY Datum DESC`, (err, rows) => {
                             if (err) {
                                 throw err;
                             }
                             win.webContents.send("rows-Ulaz", rows);
                         });
+    });
+
+    ipcMain.on("get-JedinicaMere", (event, ID_Artikla) => {
+        database.db.get(`SELECT JedinicaMere
+                        FROM Artikl
+                        WHERE ID_Artikla=?`, ID_Artikla, (err, row) => {
+                            if (err) {
+                                throw err;
+                            }
+                            event.sender.send("JedinicaMere", row);
+                        });
+    });
+
+    ipcMain.on("insert-Ulaz", (evt, ID_Artikla, Kolicina, Datum) => {
+        database.db.serialize(() => {
+            database.db.run(`INSERT INTO Ulaz(ID_Artikla, Kolicina, Datum)
+                            VALUES(?, ?, ?)`, [ID_Artikla, Kolicina, Datum], (err) => {
+                                if (err) {
+                                    dialog.showErrorBox("Greska pri unosu podataka", err.message);
+                                }
+                            });
+            database.db.run(`UPDATE Artikl
+                            SET UkupnaKolicina=UkupnaKolicina + ?
+                            WHERE ID_Artikla=?`, [Kolicina, ID_Artikla], (err) => {
+                                if (err) {
+                                    dialog.showErrorBox("Problem sa unetom kolicinom", err.message);
+                                } else {
+                                    win.reload();
+                                }
+                            })
+        });
     });
 
     // OPSTE
@@ -211,6 +252,7 @@ app.on('ready', () => {
     });
 
     win.on('closed', () => {
+        database.db.close();
         app.quit();
     });
 });

@@ -3,9 +3,67 @@
     <head>
         <meta charset="UTF-8">
         <link rel="stylesheet" href="../style.css">
+        <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../../node_modules/bootstrap-select/dist/css/bootstrap-select.min.css">
+        <script>require('popper.js')</script>
+        <script>require('bootstrap')</script>
+        <script>require('bootstrap-select')</script>
         <title>Unos u skladiste</title>
     </head>
     <body>
-        
+        <form id="ulazSkladiste">
+            <label for="SifraArtikla">Sifra artikla:</label>
+            <select id="SifraArtikla" class="selectpicker" data-live-search="true" data-title="Izaberi" required></select>
+
+            <br>
+
+            <label for="Kolicina" id="labelKolicina">Kolicina</label>
+            <input id="Kolicina" type="number" required>
+
+            <br>
+
+            <label for="Datum">Datum:</label>
+            <input id="Datum" type="date" required>
+
+            <br>
+
+            <input type="submit" value="Unesi">
+        </form>
+
+        <script>
+            const { ipcRenderer } = require('electron');
+            const $ = require('jquery');
+
+            ipcRenderer.send("req-SifraArtikla");
+            ipcRenderer.on("res-SifraArtikla", (evt, rows) => {
+                for (let obj of rows) {
+                    let values = Object.values(obj);
+                    let ID_Artikla = values[0];
+                    let SifraArtikla = values[1];
+                    let Naziv = values[2];
+                    $("#SifraArtikla").append(`<option value="${ID_Artikla}">${SifraArtikla} - ${Naziv}</option`);
+                }
+                $("#SifraArtikla").selectpicker('refresh');
+            });
+
+            $(document).ready(function() {
+                $(document).on("change", "#SifraArtikla", function() {
+                    let ID_Artikla = $("#SifraArtikla").val();
+                    ipcRenderer.send("get-JedinicaMere", ID_Artikla);
+                    ipcRenderer.on("JedinicaMere", (evt, row) => {
+                        let JedinicaMere = Object.values(row)[0];
+                        $("#labelKolicina").html(`Kolicina (${JedinicaMere}):`);
+                    });
+                });
+
+                $(document).on("submit", "#ulazSkladiste", function() {
+                    let ID_Artikla = $("#SifraArtikla").val();
+                    let Kolicina = $("#Kolicina").val();
+                    let Datum = $("#Datum").val();
+
+                    ipcRenderer.send("insert-Ulaz", ID_Artikla, Kolicina, Datum);
+                });
+            });
+        </script>
     </body>
 </html>
