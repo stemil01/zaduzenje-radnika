@@ -23,7 +23,7 @@
             <br>
 
             <label for="Datum">Datum:</label>
-            <input id="Datum" type="date" required>
+            <input id="Datum" type="date" value="2020-05-18" required>
 
             <br>
 
@@ -47,6 +47,9 @@
             });
 
             $(document).ready(function() {
+                // let currentDate = new Date();
+                // $("#Datum").val(currentDate);
+
                 $(document).on("change", "#SifraArtikla", function() {
                     let ID_Artikla = $("#SifraArtikla").val();
                     ipcRenderer.send("get-JedinicaMere", ID_Artikla);
@@ -62,6 +65,9 @@
                     let Datum = $("#Datum").val();
 
                     ipcRenderer.send("insert-Ulaz", ID_Artikla, Kolicina, Datum);
+                });
+
+                $(document).on("change", "#Datum", function() {
                 });
             });
         </script>
