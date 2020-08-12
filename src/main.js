@@ -231,6 +231,74 @@ app.on('ready', () => {
         });
     });
 
+    ipcMain.on("delete-Ulaz", (evt, ID_Ulaza) => {
+        let options = {
+            buttons: ["Da", "Ne"],
+            message: "Da ste sigurni da zelite da obrisete?"
+        };
+        let response = dialog.showMessageBoxSync(options);
+        if (response == 0) {
+            database.db.serialize(() => {
+                database.db.run(`UPDATE Artikl
+                                SET UkupnaKolicina=UkupnaKolicina - (
+                                    SELECT Kolicina
+                                    FROM Ulaz
+                                    WHERE ID_Ulaza=?
+                                )
+                                WHERE ID_Artikla=(
+                                    SELECT ID_Artikla
+                                    FROM Ulaz
+                                    WHERE ID_Ulaza=?
+                                )`, [ID_Ulaza, ID_Ulaza], (err) => {
+                                    if (err) {
+                                        throw err;
+                                    } else {
+                                        database.db.run(`DELETE FROM Ulaz
+                                                        WHERE ID_Ulaza=?`, ID_Ulaza, (err) => {
+                                                            if (err) {
+                                                                throw err;
+                                                            }
+                                                            win.webContents.send("deletedRow");
+                                                        });
+                                    }
+                                });
+            });
+        }
+    });
+
+    ipcMain.on("req-Naziv-JedinicaMere", (evt, SifraArtikla) => {
+        database.db.get(`SELECT Naziv, JedinicaMere
+                        FROM Artikl
+                        WHERE SifraArtikla=?`, SifraArtikla, (err, row) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("res-Naziv-JedinicaMere", row);
+                        });
+    });
+
+    ipcMain.on("edit-Ulaz", (evt, ID_Ulaza, SifraArtikla, prev_Kolicina, Kolicina, Datum) => {
+        database.db.serialize(() => {
+            database.db.run(`UPDATE Artikl
+                            SET UkupnaKolicina=UkupnaKolicina - ? + ?
+                            WHERE SifraArtikla=?`, [prev_Kolicina, Kolicina, SifraArtikla], (err) => {
+                                if (err) {
+                                    dialog.showErrorBox("Greska pri unosu podataka", err.message);
+                                } else {
+                                    database.db.run(`UPDATE Ulaz
+                                                    SET ID_Artikla=(SELECT ID_Artikla FROM Artikl WHERE SifraArtikla=?), Kolicina=?, Datum=?
+                                                    WHERE ID_Ulaza=?`, [SifraArtikla, Kolicina, Datum, ID_Ulaza], (err) => {
+                                                        if (err) {
+                                                            dialog.showErrorBox("Greska pri unosu podataka", err.message);
+                                                        } else {
+                                                            win.webContents.send("edited-Ulaz");
+                                                        }
+                                                    });
+                                    }
+                            });
+        }); 
+    });
+
     // OPSTE
     ipcMain.on("open-insert-window", (evt, path) => {
         let insertWin = new BrowserWindow({

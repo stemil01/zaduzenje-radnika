@@ -51,7 +51,7 @@
 
                 $(document).on("click", ".editRow", function() {
                     var $row = $(this).closest("tr");
-                    var $values = $row.find(".value");
+                    var $values = $row.find("td");
                     var prevHTML = $row.html();
 
                     let ID_Artikla = $values.eq(0).text();
@@ -86,11 +86,11 @@
                 $(document).on("click", "#confirmEdit", function() {
                     var $row = $(this).closest("tr");
 
-                    let ID_Artikla = $("#ID_Artikla").html();
-                    let SifraArtikla = $("#SifraArtikla").val();
-                    let Naziv = $("#Naziv").val();
-                    let JedinicaMere = $("#JedinicaMere").val();
-                    let Cena = $("#Cena").val();
+                    let ID_Artikla = $row.find("#ID_Artikla").html();
+                    let SifraArtikla = $row.find("#SifraArtikla").val();
+                    let Naziv = $row.find("#Naziv").val();
+                    let JedinicaMere = $row.find("#JedinicaMere").val();
+                    let Cena = $row.find("#Cena").val();
 
                     if (SifraArtikla == '' || Naziv == '' || JedinicaMere == '' || Cena == '') {
                         ipcRenderer.send("error", 'Greska pri unosu podataka', 'Vrednosti ne mogu da budu prazne');

@@ -66,8 +66,8 @@
                 $(document).on("click", "#confirmEdit", function() {
                     var $row = $(this).closest("tr");
 
-                    let ID_Radnika = $("#ID_Radnika").html();
-                    let PrezimeIme = $("#PrezimeIme").val();
+                    let ID_Radnika = $row.find("#ID_Radnika").html();
+                    let PrezimeIme = $row.find("#PrezimeIme").val();
 
                     if (PrezimeIme == '') {
                         ipcRenderer.send("error", 'Greska pri unosu podataka', 'Vrednosti ne mogu da budu prazne');

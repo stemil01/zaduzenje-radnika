@@ -23,15 +23,16 @@
             <br>
 
             <label for="Datum">Datum:</label>
-            <input id="Datum" type="date" value="2020-05-18" required>
+            <input id="Datum" type="date" required>
 
             <br>
 
             <input type="submit" value="Unesi">
         </form>
+        <button type="button" onclick="closeWin()">Zatvori</button>
 
         <script>
-            const { ipcRenderer } = require('electron');
+            const { ipcRenderer, remote } = require('electron');
             const $ = require('jquery');
 
             ipcRenderer.send("req-SifraArtikla");
@@ -46,9 +47,19 @@
                 $("#SifraArtikla").selectpicker('refresh');
             });
 
+            function closeWin() {
+                remote.getCurrentWindow().close();
+            }
+
             $(document).ready(function() {
-                // let currentDate = new Date();
-                // $("#Datum").val(currentDate);
+                let currentDate = new Date();
+                let day = currentDate.getDate();
+                if (day < 10) day = '0' + day;
+                let month = currentDate.getMonth() + 1;
+                if (month < 10) month = '0' + month;
+                let year = currentDate.getFullYear();
+
+                $("#Datum").val(year + '-' + month + '-' + day);
 
                 $(document).on("change", "#SifraArtikla", function() {
                     let ID_Artikla = $("#SifraArtikla").val();
@@ -65,9 +76,6 @@
                     let Datum = $("#Datum").val();
 
                     ipcRenderer.send("insert-Ulaz", ID_Artikla, Kolicina, Datum);
-                });
-
-                $(document).on("change", "#Datum", function() {
                 });
             });
         </script>
