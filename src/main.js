@@ -85,7 +85,7 @@ app.on('ready', () => {
     ipcMain.on("search-Artikl", (evt, key, searchBy) => {
         database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
                         FROM Artikl
-                        WHERE ${searchBy} LIKE '${key}%'`, (err, rows) => {
+                        WHERE ${searchBy} LIKE '%${key}%'`, (err, rows) => {
                             if (err) {
                                 throw err;
                             }
@@ -217,17 +217,18 @@ app.on('ready', () => {
                             VALUES(?, ?, ?)`, [ID_Artikla, Kolicina, Datum], (err) => {
                                 if (err) {
                                     dialog.showErrorBox("Greska pri unosu podataka", err.message);
+                                } else {
+                                    database.db.run(`UPDATE Artikl
+                                                    SET UkupnaKolicina=UkupnaKolicina + ?
+                                                    WHERE ID_Artikla=?`, [Kolicina, ID_Artikla], (err) => {
+                                                        if (err) {
+                                                            dialog.showErrorBox("Problem sa unetom kolicinom", err.message);
+                                                        } else {
+                                                            win.reload();
+                                                        }
+                                                    })
                                 }
                             });
-            database.db.run(`UPDATE Artikl
-                            SET UkupnaKolicina=UkupnaKolicina + ?
-                            WHERE ID_Artikla=?`, [Kolicina, ID_Artikla], (err) => {
-                                if (err) {
-                                    dialog.showErrorBox("Problem sa unetom kolicinom", err.message);
-                                } else {
-                                    win.reload();
-                                }
-                            })
         });
     });
 
@@ -297,6 +298,31 @@ app.on('ready', () => {
                                     }
                             });
         }); 
+    });
+
+    ipcMain.on("search-Ulaz", (evt, key, searchBy) => {
+        database.db.all(`SELECT U.ID_Ulaza, A.SifraArtikla, A.Naziv, A.JedinicaMere, U.Kolicina, strftime('%d.%m.%Y.', U.Datum) Datum
+                        FROM Ulaz U, Artikl A
+                        WHERE A.ID_Artikla=U.ID_Artikla AND ${searchBy} LIKE '%${key}%'
+                        ORDER BY U.Datum DESC`, (err, rows) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("search-result-Ulaz", rows);
+                        });
+    });
+
+    ipcMain.on("sort-Ulaz", (evt, attribute, desc, key, searchBy) => {
+        let sort = desc ? 'DESC' : 'ASC';
+        database.db.all(`SELECT U.ID_Ulaza, A.SifraArtikla, A.Naziv, A.JedinicaMere, U.Kolicina, strftime('%d.%m.%Y.', U.Datum) Datum
+                        FROM Ulaz U, Artikl A
+                        WHERE A.ID_Artikla=U.ID_Artikla AND ${searchBy} LIKE '%${key}%'
+                        ORDER BY ${attribute} ${sort}`, (err, rows) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("sort-rows-Ulaz", rows);
+                        });
     });
 
     // OPSTE

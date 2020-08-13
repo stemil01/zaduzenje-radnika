@@ -6,15 +6,13 @@
     <body>
         <%- include('partials/navigation') %>
 
-        <form id="searchForm">
-            <input id="searchInput" placeholder="Pretrazi po...">
-            <select id="searchBy">
-                <option value="SifraArtikla">Sifri Artikla</option>
-                <option value="Naziv" selected>Nazivu</option>
-                <option value="JedinicaMere">Jedinici mere</option>
-                <option value="Cena">Ceni</option>
-            </select>
-        </form>
+        <input id="searchInput" placeholder="Pretrazi po...">
+        <select id="searchBy">
+            <option value="SifraArtikla">Sifri Artikla</option>
+            <option value="Naziv" selected>Nazivu</option>
+            <option value="JedinicaMere">Jedinici mere</option>
+            <option value="Cena">Ceni</option>
+        </select>
 
         <table id="listaArtikala"></table>
 
@@ -26,13 +24,12 @@
             const { ipcRenderer, remote, dialog } = require('electron');
             const $ = require('jquery');
 
-            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true;
-            let prev;
-
             ipcRenderer.send("list-Artikl");
             ipcRenderer.on("rows-Artikl", (evt, rows) => {
                 createTable("listaArtikala", rows);
             });
+
+            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true;
 
             function openWin_Artikl() {
                 ipcRenderer.send("open-insert-window", 'views/popups/insertArtikl.html');

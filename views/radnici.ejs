@@ -21,12 +21,12 @@
             const { ipcRenderer } = require('electron');
             const $ = require('jquery');
 
-            let desc = true;
-
             ipcRenderer.send("list-Radnik");
             ipcRenderer.on("rows-Radnik", (evt, rows) => {
                 createTable("listaRadnika", rows);
             });
+
+            let desc = true;
 
             function openWin_Radnik() {
                 ipcRenderer.send("open-insert-window", 'views/popups/insertRadnik.html');
