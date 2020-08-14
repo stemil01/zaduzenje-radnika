@@ -26,7 +26,7 @@
 
             ipcRenderer.send("list-Artikl");
             ipcRenderer.on("rows-Artikl", (evt, rows) => {
-                createTable("listaArtikala", rows);
+                createTable("listaArtikala", rows, true);
             });
 
             let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true;
@@ -136,7 +136,7 @@
 
                     ipcRenderer.send("sort-Artikl", attribute, desc, key, searchBy);
                     ipcRenderer.on("sort-rows-Artikl", (evt, rows) => {
-                        createTable("listaArtikala", rows);
+                        createTable("listaArtikala", rows, true);
                     });
                 });
 
@@ -146,7 +146,7 @@
 
                     ipcRenderer.send("search-Artikl", key, searchBy);
                     ipcRenderer.on("search-result-Artikl", (evt, rows) => {
-                        createTable("listaArtikala", rows);
+                        createTable("listaArtikala", rows, true);
                     });
 
                 }, 350));
@@ -157,7 +157,7 @@
 
                     ipcRenderer.send("search-Artikl", key, searchBy);
                     ipcRenderer.on("search-result-Artikl", (evt, rows) => {
-                        createTable("listaArtikala", rows);
+                        createTable("listaArtikala", rows, true);
                     });
                 });
             });

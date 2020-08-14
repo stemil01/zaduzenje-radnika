@@ -5,6 +5,97 @@
     </head>
     <body>
         <%- include('partials/navigation') %>
+
+        <input id="searchInput" placeholder="Pretrazi po...">
+        <select id="searchBy">
+            <option value="SifraArtikla">Sifri Artikla</option>
+            <option value="Naziv" selected>Nazivu</option>
+            <option value="JedinicaMere">Jedinici mere</option>
+            <option value="Cena">Ceni</option>
+            <option value="UkupnaKolicina">Ukupnoj kolicini</option>
+            <option value="Vrednost">Vrednosti</option>
+        </select>
+
+        <table id="listaSkladista"></table>
+
+        <form id="editForm"></form>
+
+        <script src="../src/renderer.js"></script>
+        <script>
+            const { ipcRenderer, remote, dialog } = require('electron');
+            const $ = require('jquery');
+
+            ipcRenderer.send("list-Skladiste");
+            ipcRenderer.on("rows-Skladiste", (evt, rows) => {
+                createTable("listaSkladista", rows, false);
+            });
+
+            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true, descUkupnaKolicina = true, descVrednost = true;
+
+            $(document).ready(function() {
+                $(document).on("click", ".headerCell", function() {
+                    var attribute = $(this).text();
+                    let desc;
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
+                    switch (attribute) {
+                        case "SifraArtikla":
+                            desc = descSifraArtikla;
+                            descSifraArtikla = !descSifraArtikla;
+                            break;
+                        case "Naziv":
+                            desc = descNaziv;
+                            descNaziv = !descNaziv;
+                            break;
+                        case "JedinicaMere":
+                            desc = descJedinicaMere;
+                            descJedinicaMere = !descJedinicaMere;
+                            break;
+                        case "Cena":
+                            desc = descCena;
+                            descCena = !descCena;
+                            break;
+                        case "UkupnaKolicina":
+                            desc = descUkupnaKolicina;
+                            descUkupnaKolicina = !descUkupnaKolicina;
+                            break;
+                        case "Vrednost":
+                            desc = descVrednost;
+                            descVrednost = !descVrednost;
+                            break;
+                        default:
+                            console.log('Ne poklapa se ime kolone');
+                            break;
+                    }
+
+                    ipcRenderer.send("sort-Skladiste", attribute, desc, key, searchBy);
+                    ipcRenderer.on("sort-rows-Skladiste", (evt, rows) => {
+                        createTable("listaSkladista", rows, false);
+                    });
+                });
+
+                $(document).on("change keyup paste", "#searchInput", debounce(() => {
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
+
+                    ipcRenderer.send("search-Skladiste", key, searchBy);
+                    ipcRenderer.on("search-result-Skladiste", (evt, rows) => {
+                        createTable("listaSkladista", rows, false);
+                    });
+
+                }, 350));
+
+                $(document).on("change", "#searchBy", function() {
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
+
+                    ipcRenderer.send("search-Skladiste", key, searchBy);
+                    ipcRenderer.on("search-result-Skladiste", (evt, rows) => {
+                        createTable("listaSkladista", rows, false);
+                    });
+                });
+            });
+        </script>
     </body>
     <footer>
         <%- include('partials/footer') %>

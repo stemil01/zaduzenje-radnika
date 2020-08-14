@@ -31,7 +31,7 @@
 
             ipcRenderer.send("list-Ulaz");
             ipcRenderer.on("rows-Ulaz", (evt, rows) => {
-                createTable("listaUlaza", rows);
+                createTable("listaUlaza", rows, true);
             });
 
             let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descKolicina = true, descDatum = true;
@@ -122,7 +122,7 @@
 
                     ipcRenderer.send("search-Ulaz", key, searchBy);
                     ipcRenderer.on("search-result-Ulaz", (evt, rows) => {
-                        createTable("listaUlaza", rows);
+                        createTable("listaUlaza", rows, true);
                     });
 
                 }, 350));
@@ -133,7 +133,7 @@
 
                     ipcRenderer.send("search-Ulaz", key, searchBy);
                     ipcRenderer.on("search-result-Ulaz", (evt, rows) => {
-                        createTable("listaUlaza", rows);
+                        createTable("listaUlaza", rows, true);
                     });
                 });
 
@@ -170,7 +170,7 @@
 
                     ipcRenderer.send("sort-Ulaz", attribute, desc, key, searchBy);
                     ipcRenderer.on("sort-rows-Ulaz", (evt, rows) => {
-                        createTable("listaUlaza", rows);
+                        createTable("listaUlaza", rows, true);
                     });
                 });
             });

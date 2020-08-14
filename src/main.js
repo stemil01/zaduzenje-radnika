@@ -17,6 +17,7 @@ app.on('ready', () => {
     win.loadFile('views/main.ejs');
     win.webContents.openDevTools();
 
+    // ARTIKL
     ipcMain.on("list-Artikl", () => {
         database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
             FROM Artikl`, (err, rows) => {
@@ -27,7 +28,6 @@ app.on('ready', () => {
             });
     });
 
-    // ARTIKL
     ipcMain.on("insert-Artikl", (evt, SifraArtikla, Naziv, JedinicaMere, Cena) => {
         database.db.run(`INSERT INTO Artikl(SifraArtikla, Naziv, JedinicaMere, Cena)
                         VALUES(?, ?, ?, ?)`, [SifraArtikla, Naziv, JedinicaMere, Cena], (err) => {
@@ -73,7 +73,7 @@ app.on('ready', () => {
         let sort = desc ? 'DESC' : 'ASC';
         database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
                         FROM Artikl
-                        WHERE ${searchBy} LIKE '${key}%'
+                        WHERE ${searchBy} LIKE '%${key}%'
                         ORDER BY ${attribute} ${sort}`, (err, rows) => {
                             if (err) {
                                 throw err;
@@ -322,6 +322,41 @@ app.on('ready', () => {
                                 throw err;
                             }
                             win.webContents.send("sort-rows-Ulaz", rows);
+                        });
+    });
+
+    // SKLADISTE
+    ipcMain.on("list-Skladiste", () => {
+        database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena, UkupnaKolicina, Cena*UkupnaKolicina Vrednost
+            FROM Artikl`, (err, rows) => {
+                if (err) {
+                    throw err;
+                }
+                win.webContents.send("rows-Skladiste", rows);
+            });
+    });
+
+    ipcMain.on("sort-Skladiste", (evt, attribute, desc, key, searchBy) => {
+        let sort = desc ? 'DESC' : 'ASC';
+        database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena, UkupnaKolicina, Cena*UkupnaKolicina Vrednost
+                        FROM Artikl
+                        WHERE ${searchBy} LIKE '%${key}%'
+                        ORDER BY ${attribute} ${sort}`, (err, rows) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("sort-rows-Skladiste", rows);
+                        });
+    });
+
+    ipcMain.on("search-Skladiste", (evt, key, searchBy) => {
+        database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena, UkupnaKolicina, Cena*UkupnaKolicina Vrednost
+                        FROM Artikl
+                        WHERE ${searchBy} LIKE '%${key}%'`, (err, rows) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("search-result-Skladiste", rows);
                         });
     });
 

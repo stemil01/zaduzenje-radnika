@@ -1,4 +1,4 @@
-function createTable(tableID, data) {
+function createTable(tableID, data, buttons) {
     let table = document.getElementById(tableID);
     table.innerHTML = '';
 
@@ -36,8 +36,10 @@ function createTable(tableID, data) {
                     rowHTML += `<td class="value">${value}</td>`;
                 }
             }
-            rowHTML += '<td><button type="button" class="deleteRow">X</button></td>';
-            rowHTML += '<td><button type="button" class="editRow">E</button></td>';
+            if (buttons) {
+                rowHTML += '<td><button type="button" class="deleteRow">X</button></td>';
+                rowHTML += '<td><button type="button" class="editRow">E</button></td>';
+            }
             row.innerHTML = rowHTML;
             tbody.appendChild(row);
         }
