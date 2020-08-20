@@ -24,12 +24,14 @@
             const { ipcRenderer, remote, dialog } = require('electron');
             const $ = require('jquery');
 
+            let rowsArtikl;
+            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true;
+
             ipcRenderer.send("list-Artikl");
             ipcRenderer.on("rows-Artikl", (evt, rows) => {
-                createTable("listaArtikala", rows, true);
+                rowsArtikl = rows;
+                createTable("listaArtikala", rowsArtikl, true);
             });
-
-            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true;
 
             function openWin_Artikl() {
                 ipcRenderer.send("open-insert-window", 'views/popups/insertArtikl.html');
@@ -41,8 +43,13 @@
                     let ID_Artikla = $row.find("td:first").text();
 
                     ipcRenderer.send("delete-Artikl", ID_Artikla);
-                    ipcRenderer.on("deletedRow", () => {
-                        $row.remove(); // ovo je potencijalno mesto gde moze da dodje do neke greske, proveri!
+                    ipcRenderer.once("deletedRow", () => {
+                        $row.remove();
+
+                        let index = rowsArtikl.findIndex((element) => {
+                            return element.ID_Artikla == ID_Artikla;
+                        });
+                        rowsArtikl.splice(index, 1);
                     });
                 });
 
@@ -93,7 +100,7 @@
                         ipcRenderer.send("error", 'Greska pri unosu podataka', 'Vrednosti ne mogu da budu prazne');
                     } else {
                         ipcRenderer.send("edit-Artikl", ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena);
-                        ipcRenderer.on("edited-Artikl", () => {
+                        ipcRenderer.once("edited-Artikl", () => {
                             let rowHMTL =  `<td class="value" style="display: none;">${ID_Artikla}</td>
                                             <td class="value">${SifraArtikla}</td>
                                             <td class="value">${Naziv}</td>
@@ -103,6 +110,17 @@
                                             <td><button type="button" class="editRow">E</button></td>`;
 
                             $row.html(rowHMTL);
+
+                            let index = rowsArtikl.findIndex((element) => {
+                                return element.ID_Artikla == ID_Artikla;
+                            });
+                            rowsArtikl[index] = {
+                                ID_Artikla: ID_Artikla,
+                                SifraArtikla: SifraArtikla,
+                                Naziv: Naziv,
+                                JedinicaMere: JedinicaMere,
+                                Cena: Cena
+                            };
                         });
                     }
                 });
@@ -134,20 +152,14 @@
                             break;
                     }
 
-                    ipcRenderer.send("sort-Artikl", attribute, desc, key, searchBy);
-                    ipcRenderer.on("sort-rows-Artikl", (evt, rows) => {
-                        createTable("listaArtikala", rows, true);
-                    });
+                    createTable("listaArtikala", filterTable(rowsArtikl, attribute, desc, key, searchBy), true);
                 });
 
                 $(document).on("change keyup paste", "#searchInput", debounce(() => {
                     let key = $("#searchInput").val();
                     let searchBy = $("#searchBy").val();
 
-                    ipcRenderer.send("search-Artikl", key, searchBy);
-                    ipcRenderer.on("search-result-Artikl", (evt, rows) => {
-                        createTable("listaArtikala", rows, true);
-                    });
+                    createTable("listaArtikala", searchTable(rowsArtikl, key, searchBy), true);
 
                 }, 350));
 
@@ -155,10 +167,7 @@
                     let key = $("#searchInput").val();
                     let searchBy = $("#searchBy").val();
 
-                    ipcRenderer.send("search-Artikl", key, searchBy);
-                    ipcRenderer.on("search-result-Artikl", (evt, rows) => {
-                        createTable("listaArtikala", rows, true);
-                    });
+                    createTable("listaArtikala", searchTable(rowsArtikl, key, searchBy), true);
                 });
             });
 

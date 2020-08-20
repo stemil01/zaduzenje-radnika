@@ -57,3 +57,43 @@ function debounce(fn, delay) {
         }, delay);
     };
 }
+
+function filterTable(data, attribute, desc, key, searchBy) {
+    if (data.length > 0) {
+        let filteredData = [];
+        for (obj of data) {
+            if (obj[searchBy].toString().toLowerCase().indexOf(key.toLowerCase()) > -1) {
+                filteredData.push(obj);
+            }
+        }
+
+        if (filteredData.length > 0) {
+            filteredData.sort((x, y) => {
+                let _x = x[attribute], _y = y[attribute];
+                if (typeof filteredData[0][attribute] == 'string') {
+                    _x = _x.toLowerCase();
+                    _y = _y.toLowerCase();
+                }
+
+                if (_x < _y) return desc ? 1 : -1;
+                if (_x > _y) return desc ? -1 : 1;
+                return 0;
+            });
+        }
+        return filteredData;
+    }
+    return;
+}
+
+function searchTable(data, key, searchBy) {
+    if (data.length > 0) {
+        let filteredData = [];
+        for (obj of data) {
+            if (obj[searchBy].toString().toLowerCase().indexOf(key.toLowerCase()) > -1) {
+                filteredData.push(obj);
+            }
+        }
+        return filteredData;
+    }
+    return;
+}

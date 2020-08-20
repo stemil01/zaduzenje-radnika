@@ -42,7 +42,7 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS Ulaz (
         ID_Ulaza INTEGER PRIMARY KEY,
         ID_Artikla INTEGER NOT NULL,
-        Kolicina FLOAT NOT NULL CHECK(Kolicina >= 0),
+        Kolicina FLOAT NOT NULL CHECK(Kolicina > 0),
         Datum DATE NOT NULL,
         FOREIGN KEY (ID_Artikla)
             REFERENCES Artikl (ID_Artikla)
@@ -85,6 +85,7 @@ db.serialize(() => {
         ID_Radnika INTEGER NOT NULL,
         ID_Artikla INTEGER NOT NULL,
         Kolicina FLOAT NOT NULL CHECK(Kolicina >= 0),
+        Datum DATE NOT NULL,
         FOREIGN KEY (ID_Radnika)
             REFERENCES Radnik (ID_Radnika),
         FOREIGN KEY (ID_Artikla)

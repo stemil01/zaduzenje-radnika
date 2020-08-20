@@ -7,10 +7,6 @@
         <%- include('partials/navigation') %>
 
         <input id="searchInput" placeholder="Pretrazi po...">
-        <select id="searchBy">
-            <option value="Prezime" selected>Prezimenu</option>
-            <option value="Ime">Imenu</option>
-        </select>
 
         <table id="listaRadnika"></table>
 
@@ -21,12 +17,15 @@
             const { ipcRenderer } = require('electron');
             const $ = require('jquery');
 
+            let rowsRadnik;
+            let desc = true;
+
             ipcRenderer.send("list-Radnik");
             ipcRenderer.on("rows-Radnik", (evt, rows) => {
-                createTable("listaRadnika", rows, true);
+                rowsRadnik = rows;
+                createTable("listaRadnika", rowsRadnik, true);
             });
 
-            let desc = true;
 
             function openWin_Radnik() {
                 ipcRenderer.send("open-insert-window", 'views/popups/insertRadnik.html');
@@ -40,6 +39,11 @@
                     ipcRenderer.send("delete-Radnik", ID_Radnika);
                     ipcRenderer.on("deletedRow", () => {
                         $row.remove();
+
+                        let index = rowsRadnik.findIndex((element) => {
+                            return element.ID_Radnika == ID_Radnika;
+                        });
+                        rowsArtikl.splice(index, 1);
                     });
                 });
 
@@ -80,6 +84,14 @@
                                             <td><button type="button" class="editRow">E</button></td>`;
 
                             $row.html(rowHMTL);
+
+                            let index = rowsRadnik.findIndex((element) => {
+                                return element.ID_Radnika == ID_Radnika;
+                            });
+                            rowsRadnik[index] = {
+                                ID_Radnika: ID_Radnika,
+                                PrezimeIme: PrezimeIme
+                            }
                         });
                     }
                 });
@@ -87,34 +99,21 @@
                 $(document).on("click", ".headerCell", function() {
                     let attribute = $(this).text();
                     let key = $("#searchInput").val();
-                    let searchBy = $("#searchBy").val();
 
                     desc = !desc;
-                    ipcRenderer.send("sort-Radnik", attribute, desc, key, searchBy);
-                    ipcRenderer.on("sort-rows-Radnik", (evt, rows) => {
-                        createTable("listaRadnika", rows, true);
-                    });
+                    createTable("listaRadnika", filterTable(rowsRadnik, attribute, desc, key, 'PrezimeIme'), true);
                 });
 
                 $(document).on("change keyup paste", "#searchInput", debounce(() => {
                     let key = $("#searchInput").val();
-                    let searchBy = $("#searchBy").val();
 
-                    ipcRenderer.send("search-Radnik", key, searchBy);
-                    ipcRenderer.on("search-result-Radnik", (evt, rows) => {
-                        createTable("listaRadnika", rows, true);
-                    });
-
+                    createTable("listaRadnika", searchTable(rowsRadnik, key, 'PrezimeIme'), true);
                 }, 350));
 
                 $(document).on("change", "#searchBy", function() {
                     let key = $("#searchInput").val();
-                    let searchBy = $("#searchBy").val();
 
-                    ipcRenderer.send("search-Radnik", key, searchBy);
-                    ipcRenderer.on("search-result-Radnik", (evt, rows) => {
-                        createTable("listaRadnika", rows, true);
-                    });
+                    createTable("listaRadnika", searchTable(rowsRadnik, key, 'PrezimeIme'), true);
                 });
             });
 

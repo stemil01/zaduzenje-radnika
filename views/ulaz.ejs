@@ -78,7 +78,7 @@
                                             <input type="date" id="Datum" value="${Datum}">
                                         </td>
                                         <td>
-                                            <button type="button" id="confirmEdit" onclick="confirmEdit(this, '${Kolicina}')">Potvrdi</button>
+                                            <button type="button" id="confirmEdit" onclick="confirmEdit(this, '${SifraArtikla}', '${Kolicina}')">Potvrdi</button>
                                         </td>
                                         <td>
                                             <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Ulaza}', '${SifraArtikla}', '${Naziv}', '${JedinicaMere}', '${Kolicina}', '${formatDatum}')">Ponisti</button>
@@ -175,7 +175,7 @@
                 });
             });
 
-            function confirmEdit(btn, prev_Kolicina) {
+            function confirmEdit(btn, prev_SifraArtikla, prev_Kolicina) {
                 let $row = $(btn).closest("tr");
                 let ID_Ulaza = $row.find("#ID_Ulaza").text();
                 let SifraArtikla = $row.find("#SifraArtikla").val();
@@ -186,7 +186,7 @@
                 let date = new Date(Datum);
                 let formatDatum = date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear() + '.';
 
-                ipcRenderer.send("edit-Ulaz", ID_Ulaza, SifraArtikla, prev_Kolicina, Kolicina, Datum);
+                ipcRenderer.send("edit-Ulaz", ID_Ulaza, prev_SifraArtikla, SifraArtikla, prev_Kolicina, Kolicina, Datum);
                 ipcRenderer.on("edited-Ulaz", () => {
                     let rowHMTL = `<td class="value" style="display: none;">${ID_Ulaza}</td>
                                             <td class="value">${SifraArtikla}</td>

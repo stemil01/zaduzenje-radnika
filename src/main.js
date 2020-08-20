@@ -69,29 +69,29 @@ app.on('ready', () => {
                         });
     });
 
-    ipcMain.on("sort-Artikl", (evt, attribute, desc, key, searchBy) => {
-        let sort = desc ? 'DESC' : 'ASC';
-        database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
-                        FROM Artikl
-                        WHERE ${searchBy} LIKE '%${key}%'
-                        ORDER BY ${attribute} ${sort}`, (err, rows) => {
-                            if (err) {
-                                throw err;
-                            }
-                            win.webContents.send("sort-rows-Artikl", rows);
-                        });
-    });
+    // ipcMain.on("sort-Artikl", (evt, attribute, desc, key, searchBy) => {
+    //     let sort = desc ? 'DESC' : 'ASC';
+    //     database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
+    //                     FROM Artikl
+    //                     WHERE ${searchBy} LIKE '%${key}%'
+    //                     ORDER BY ${attribute} ${sort}`, (err, rows) => {
+    //                         if (err) {
+    //                             throw err;
+    //                         }
+    //                         win.webContents.send("sort-rows-Artikl", rows);
+    //                     });
+    // });
 
-    ipcMain.on("search-Artikl", (evt, key, searchBy) => {
-        database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
-                        FROM Artikl
-                        WHERE ${searchBy} LIKE '%${key}%'`, (err, rows) => {
-                            if (err) {
-                                throw err;
-                            }
-                            win.webContents.send("search-result-Artikl", rows);
-                        });
-    });
+    // ipcMain.on("search-Artikl", (evt, key, searchBy) => {
+    //     database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
+    //                     FROM Artikl
+    //                     WHERE ${searchBy} LIKE '%${key}%'`, (err, rows) => {
+    //                         if (err) {
+    //                             throw err;
+    //                         }
+    //                         win.webContents.send("search-result-Artikl", rows);
+    //                     });
+    // });
 
     // RADNIK
     ipcMain.on("list-Radnik", () => {
@@ -146,36 +146,36 @@ app.on('ready', () => {
                         });
     });
 
-    ipcMain.on("sort-Radnik", (evt, attribute, desc, key, searchBy) => {
-        let sort = desc ? 'DESC' : 'ASC';
-        if (searchBy == 'Ime') {
-            key = '% ' + key;
-        }
+    // ipcMain.on("sort-Radnik", (evt, attribute, desc, key, searchBy) => {
+    //     let sort = desc ? 'DESC' : 'ASC';
+    //     if (searchBy == 'Ime') {
+    //         key = '% ' + key;
+    //     }
 
-        database.db.all(`SELECT ID_Radnika, PrezimeIme
-                        FROM Radnik
-                        WHERE PrezimeIme LIKE '${key}%'
-                        ORDER BY ${attribute} ${sort}`, (err, rows) => {
-                            if (err) {
-                                throw err;
-                            }
-                            win.webContents.send("sort-rows-Radnik", rows);
-                        });
-    });
+    //     database.db.all(`SELECT ID_Radnika, PrezimeIme
+    //                     FROM Radnik
+    //                     WHERE PrezimeIme LIKE '${key}%'
+    //                     ORDER BY ${attribute} ${sort}`, (err, rows) => {
+    //                         if (err) {
+    //                             throw err;
+    //                         }
+    //                         win.webContents.send("sort-rows-Radnik", rows);
+    //                     });
+    // });
 
-    ipcMain.on("search-Radnik", (evt, key, searchBy) => {
-        if (searchBy == 'Ime') {
-            key = '% ' + key;
-        }
-        database.db.all(`SELECT ID_Radnika, PrezimeIme
-                        FROM Radnik
-                        WHERE PrezimeIme LIKE '${key}%'`, (err, rows) => {
-                            if (err) {
-                                throw err;
-                            }
-                            win.webContents.send("search-result-Radnik", rows);
-                        });
-    });
+    // ipcMain.on("search-Radnik", (evt, key, searchBy) => {
+    //     if (searchBy == 'Ime') {
+    //         key = '% ' + key;
+    //     }
+    //     database.db.all(`SELECT ID_Radnika, PrezimeIme
+    //                     FROM Radnik
+    //                     WHERE PrezimeIme LIKE '${key}%'`, (err, rows) => {
+    //                         if (err) {
+    //                             throw err;
+    //                         }
+    //                         win.webContents.send("search-result-Radnik", rows);
+    //                     });
+    // });
 
     // ULAZ
     ipcMain.on("req-SifraArtikla", (event) => {
@@ -192,7 +192,7 @@ app.on('ready', () => {
         database.db.all(`SELECT U.ID_Ulaza, A.SifraArtikla, A.Naziv, A.JedinicaMere, U.Kolicina, strftime('%d.%m.%Y.', U.Datum) Datum
                         FROM Ulaz U, Artikl A
                         WHERE U.ID_Artikla=A.ID_Artikla
-                        ORDER BY Datum DESC`, (err, rows) => {
+                        ORDER BY U.Datum DESC`, (err, rows) => {
                             if (err) {
                                 throw err;
                             }
@@ -278,24 +278,32 @@ app.on('ready', () => {
                         });
     });
 
-    ipcMain.on("edit-Ulaz", (evt, ID_Ulaza, SifraArtikla, prev_Kolicina, Kolicina, Datum) => {
+    ipcMain.on("edit-Ulaz", (evt, ID_Ulaza, prev_SifraArtikla, SifraArtikla, prev_Kolicina, Kolicina, Datum) => {
         database.db.serialize(() => {
             database.db.run(`UPDATE Artikl
-                            SET UkupnaKolicina=UkupnaKolicina - ? + ?
-                            WHERE SifraArtikla=?`, [prev_Kolicina, Kolicina, SifraArtikla], (err) => {
+                            SET UkupnaKolicina=UkupnaKolicina - ?
+                            WHERE SifraArtikla=?`, [prev_Kolicina, prev_SifraArtikla], (err) => {
                                 if (err) {
-                                    dialog.showErrorBox("Greska pri unosu podataka", err.message);
+                                    throw err;
                                 } else {
-                                    database.db.run(`UPDATE Ulaz
-                                                    SET ID_Artikla=(SELECT ID_Artikla FROM Artikl WHERE SifraArtikla=?), Kolicina=?, Datum=?
-                                                    WHERE ID_Ulaza=?`, [SifraArtikla, Kolicina, Datum, ID_Ulaza], (err) => {
+                                    database.db.run(`UPDATE Artikl
+                                                    SET UkupnaKolicina=UkupnaKolicina + ?
+                                                    WHERE SifraArtikla=?`, [Kolicina, SifraArtikla], (err) => {
                                                         if (err) {
-                                                            dialog.showErrorBox("Greska pri unosu podataka", err.message);
+                                                            dialog.showErrorBox("Greska pri unosu podataka marko", err.message);
                                                         } else {
-                                                            win.webContents.send("edited-Ulaz");
-                                                        }
-                                                    });
-                                    }
+                                                            database.db.run(`UPDATE Ulaz
+                                                                            SET ID_Artikla=(SELECT ID_Artikla FROM Artikl WHERE SifraArtikla=?), Kolicina=?, Datum=?
+                                                                            WHERE ID_Ulaza=?`, [SifraArtikla, Kolicina, Datum, ID_Ulaza], (err) => {
+                                                                                if (err) {
+                                                                                    dialog.showErrorBox("Greska pri unosu podataka", err.message);
+                                                                                } else {
+                                                                                    win.webContents.send("edited-Ulaz");
+                                                                                }
+                                                                            });
+                                                            }
+                                    });
+                                }
                             });
         }); 
     });
