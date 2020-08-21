@@ -5,6 +5,33 @@
     </head>
     <body>
         <%- include('partials/navigation') %>
+
+        <input id="searchZaduzenja" placeholder="Pretrazi po...">
+        <select id="seachBy">
+            <option value="">Radniku</option>
+        </select>
+
+        <table id="listaZaduzenja"></table>
+
+        <button type="button" onclick="openWin_Zaduznje()">Novo zaduzenje</button>
+        <script src="../src/renderer.js"></script>
+        <script>
+            const { ipcRenderer } = require('electron');
+            const $ = require('jquery');
+
+            let rowsZaduzenje;
+            
+            ipcRenderer.send("list-Zaduzenje");
+            ipcRenderer.on("rows-Zaduzenje", (evt, rows) => {
+                rowsZaduzenje = rows;
+                createTable("listaZaduzenja", rowsZaduzenje, true);
+            });
+
+            function openWin_Zaduznje() {
+                ipcRenderer.send("open-insert-window", 'views/popups/insertZaduzenje.html');
+            }
+
+        </script>
     </body>
     <footer>
         <%- include('partials/footer') %>
