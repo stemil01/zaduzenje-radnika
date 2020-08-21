@@ -25,13 +25,16 @@ function createTable(tableID, data, buttons) {
         let tbody = table.createTBody();
         for (let obj of data) {
             let row = tbody.insertRow();
-            let rowData = Object.values(obj);
+            let rowData = Object.entries(obj);
             let rowHTML = '';
             let pk = true;
-            for (let value of rowData) {
+            for (let [key, value] of rowData) {
                 if (pk) {
                     rowHTML += `<td class="value" style="display: none;">${value}</td>`;
                     pk = false;
+                } else if (key.indexOf('Datum') > -1) {
+                    let formatDatum = value.substr(8, 2) + '.' + value.substr(5, 2) + '.' + value.substr(0, 4) + '.';
+                    rowHTML += `<td class="value">${formatDatum}</td>`;
                 } else {
                     rowHTML += `<td class="value">${value}</td>`;
                 }

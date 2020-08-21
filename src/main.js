@@ -189,7 +189,7 @@ app.on('ready', () => {
     });
 
     ipcMain.on("list-Ulaz", () => {
-        database.db.all(`SELECT U.ID_Ulaza, A.SifraArtikla, A.Naziv, A.JedinicaMere, U.Kolicina, strftime('%d.%m.%Y.', U.Datum) Datum
+        database.db.all(`SELECT U.ID_Ulaza, A.SifraArtikla, A.Naziv, A.JedinicaMere, U.Kolicina, U.Datum
                         FROM Ulaz U, Artikl A
                         WHERE U.ID_Artikla=A.ID_Artikla
                         ORDER BY U.Datum DESC`, (err, rows) => {

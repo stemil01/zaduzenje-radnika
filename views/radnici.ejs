@@ -37,7 +37,7 @@
                     let ID_Radnika = $row.find("td:first").text();
                     
                     ipcRenderer.send("delete-Radnik", ID_Radnika);
-                    ipcRenderer.on("deletedRow", () => {
+                    ipcRenderer.once("deletedRow", () => {
                         $row.remove();
 
                         let index = rowsRadnik.findIndex((element) => {
@@ -77,7 +77,7 @@
                         ipcRenderer.send("error", 'Greska pri unosu podataka', 'Vrednosti ne mogu da budu prazne');
                     } else {
                         ipcRenderer.send("edit-Radnik", ID_Radnika, PrezimeIme);
-                        ipcRenderer.on("edited-Radnik", () => {
+                        ipcRenderer.once("edited-Radnik", () => {
                             let rowHMTL =  `<td class="value" style="display: none;">${ID_Radnika}</td>
                                             <td class="value">${PrezimeIme}</td>
                                             <td><button type="button" class="deleteRow">X</button></td>
@@ -91,7 +91,7 @@
                             rowsRadnik[index] = {
                                 ID_Radnika: ID_Radnika,
                                 PrezimeIme: PrezimeIme
-                            }
+                            };
                         });
                     }
                 });

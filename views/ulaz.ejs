@@ -29,12 +29,14 @@
             const { ipcRenderer } = require('electron');
             const $ = require('jquery');
 
+            let rowsUlaz;
+            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descKolicina = true, descDatum = true;
+
             ipcRenderer.send("list-Ulaz");
             ipcRenderer.on("rows-Ulaz", (evt, rows) => {
-                createTable("listaUlaza", rows, true);
+                rowsUlaz = rows;
+                createTable("listaUlaza", rowsUlaz, true);
             });
-
-            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descKolicina = true, descDatum = true;
 
             function openWin_Ulaz() {
                 ipcRenderer.send("open-insert-window", 'views/popups/insertUlaz.html');
@@ -45,8 +47,13 @@
                     let $row = $(this).closest("tr");
                     let ID_Ulaza = $row.find('td:first').text();
                     ipcRenderer.send("delete-Ulaz", ID_Ulaza);
-                    ipcRenderer.on("deletedRow", () => {
+                    ipcRenderer.once("deletedRow", () => {
                         $row.remove();
+
+                        let index = rowsUlaz.findIndex((element) => {
+                            return element.ID_Ulaza == ID_Ulaza;
+                        });
+                        rowsUlaz.splice(index, 1);
                     })
                 });
 
@@ -87,7 +94,7 @@
                     $row.html(rowHTML);
 
                     ipcRenderer.send("req-SifraArtikla");
-                    ipcRenderer.on("res-SifraArtikla", (evt, rows) => {
+                    ipcRenderer.once("res-SifraArtikla", (evt, rows) => {
                         let $select = $row.find("#SifraArtikla");
                         $select.empty();
                         for (let obj of rows) {
@@ -107,7 +114,7 @@
                     let $row = $(this).closest("tr");
 
                     ipcRenderer.send("req-Naziv-JedinicaMere", SifraArtikla);
-                    ipcRenderer.on("res-Naziv-JedinicaMere", (evt, row) => {
+                    ipcRenderer.once("res-Naziv-JedinicaMere", (evt, row) => {
                         let values = Object.values(row);
                         let Naziv = values[0], JedinicaMere = values[1];
 
@@ -120,21 +127,14 @@
                     let key = $("#searchInput").val();
                     let searchBy = $("#searchBy").val();
 
-                    ipcRenderer.send("search-Ulaz", key, searchBy);
-                    ipcRenderer.on("search-result-Ulaz", (evt, rows) => {
-                        createTable("listaUlaza", rows, true);
-                    });
-
+                    createTable("listaUlaza", searchTable(rowsUlaz, key, searchBy), true);
                 }, 350));
 
                 $(document).on("change", "#searchBy", function() {
                     let key = $("#searchInput").val();
                     let searchBy = $("#searchBy").val();
 
-                    ipcRenderer.send("search-Ulaz", key, searchBy);
-                    ipcRenderer.on("search-result-Ulaz", (evt, rows) => {
-                        createTable("listaUlaza", rows, true);
-                    });
+                    createTable("listaUlaza", searchTable(rowsUlaz, key, searchBy), true);
                 });
 
                 $(document).on("click", ".headerCell", function() {
@@ -168,10 +168,7 @@
                             break;
                     }
 
-                    ipcRenderer.send("sort-Ulaz", attribute, desc, key, searchBy);
-                    ipcRenderer.on("sort-rows-Ulaz", (evt, rows) => {
-                        createTable("listaUlaza", rows, true);
-                    });
+                    createTable("listaUlaza", filterTable(rowsUlaz, attribute, desc, key, searchBy), true);
                 });
             });
 
@@ -183,11 +180,10 @@
                 let JedinicaMere = $row.find("#JedinicaMere").attr("placeholder");
                 let Kolicina = $row.find("#Kolicina").val();
                 let Datum = $row.find("#Datum").val();
-                let date = new Date(Datum);
-                let formatDatum = date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear() + '.';
+                let formatDatum = Datum.substr(8, 2) + '.' + Datum.substr(5, 2) + '.' + Datum.substr(0, 4) + '.';
 
                 ipcRenderer.send("edit-Ulaz", ID_Ulaza, prev_SifraArtikla, SifraArtikla, prev_Kolicina, Kolicina, Datum);
-                ipcRenderer.on("edited-Ulaz", () => {
+                ipcRenderer.once("edited-Ulaz", () => {
                     let rowHMTL = `<td class="value" style="display: none;">${ID_Ulaza}</td>
                                             <td class="value">${SifraArtikla}</td>
                                             <td class="value">${Naziv}</td>
@@ -198,6 +194,18 @@
                                             <td><button type="button" class="editRow">E</button></td>`;
 
                     $row.html(rowHMTL);
+
+                    let index = rowsUlaz.findIndex((element) => {
+                        return element.ID_Ulaza == ID_Ulaza;
+                    });
+                    rowsUlaz[index] = {
+                        ID_Ulaza: ID_Ulaza,
+                        SifraArtikla: SifraArtikla,
+                        Naziv: Naziv,
+                        JedinicaMere: JedinicaMere,
+                        Kolicina: Kolicina,
+                        Datum: Datum
+                    };
                 });
             }
 

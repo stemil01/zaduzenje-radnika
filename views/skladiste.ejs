@@ -25,12 +25,14 @@
             const { ipcRenderer, remote, dialog } = require('electron');
             const $ = require('jquery');
 
+            let rowsSkladiste;
+            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true, descUkupnaKolicina = true, descVrednost = true;
+
             ipcRenderer.send("list-Skladiste");
             ipcRenderer.on("rows-Skladiste", (evt, rows) => {
-                createTable("listaSkladista", rows, false);
+                rowsSkladiste = rows;
+                createTable("listaSkladista", rowsSkladiste, false);
             });
-
-            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true, descUkupnaKolicina = true, descVrednost = true;
 
             $(document).ready(function() {
                 $(document).on("click", ".headerCell", function() {
@@ -68,31 +70,21 @@
                             break;
                     }
 
-                    ipcRenderer.send("sort-Skladiste", attribute, desc, key, searchBy);
-                    ipcRenderer.on("sort-rows-Skladiste", (evt, rows) => {
-                        createTable("listaSkladista", rows, false);
-                    });
+                    createTable("listaSkladista", filterTable(rowsSkladiste, attribute, desc, key, searchBy), false);
                 });
 
                 $(document).on("change keyup paste", "#searchInput", debounce(() => {
                     let key = $("#searchInput").val();
                     let searchBy = $("#searchBy").val();
 
-                    ipcRenderer.send("search-Skladiste", key, searchBy);
-                    ipcRenderer.on("search-result-Skladiste", (evt, rows) => {
-                        createTable("listaSkladista", rows, false);
-                    });
-
+                    createTable("listaSkladista", searchTable(rowsSkladiste, key, searchBy), false);
                 }, 350));
 
                 $(document).on("change", "#searchBy", function() {
                     let key = $("#searchInput").val();
                     let searchBy = $("#searchBy").val();
 
-                    ipcRenderer.send("search-Skladiste", key, searchBy);
-                    ipcRenderer.on("search-result-Skladiste", (evt, rows) => {
-                        createTable("listaSkladista", rows, false);
-                    });
+                    createTable("listaSkladista", searchTable(rowsSkladiste, key, searchBy), false);
                 });
             });
         </script>
