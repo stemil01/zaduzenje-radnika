@@ -69,34 +69,33 @@
                     let Datum = formatDatum.substr(6, 4) + '-' + formatDatum.substr(3, 2) + '-' + formatDatum.substr(0, 2);
 
                     let rowHTML = `<td class="value" style="display: none;" id="ID_Ulaza">${ID_Ulaza}</td>
-                                        <td>
-                                            <select id="SifraArtikla" class="selectpicker" data-live-search="true" required></select>
-                                        </td>
-                                        <td>
-                                            <input type="text" id="Naziv" placeholder="${Naziv}" readonly>
-                                        </td>
-                                        <td>
-                                            <input type="text" id="JedinicaMere" placeholder="${JedinicaMere}" readonly>
-                                        </td>
-                                        <td>
-                                            <input type="number" id="Kolicina" value="${Kolicina}">
-                                        </td>
-                                        <td>
-                                            <input type="date" id="Datum" value="${Datum}">
-                                        </td>
-                                        <td>
-                                            <button type="button" id="confirmEdit" onclick="confirmEdit(this, '${SifraArtikla}', '${Kolicina}')">Potvrdi</button>
-                                        </td>
-                                        <td>
-                                            <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Ulaza}', '${SifraArtikla}', '${Naziv}', '${JedinicaMere}', '${Kolicina}', '${formatDatum}')">Ponisti</button>
-                                        </td>`;
+                                    <td>
+                                        <select id="SifraArtikla" class="selectpicker" data-live-search="true" required></select>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="Naziv" placeholder="${Naziv}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="JedinicaMere" placeholder="${JedinicaMere}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="number" id="Kolicina" value="${Kolicina}">
+                                    </td>
+                                    <td>
+                                        <input type="date" id="Datum" value="${Datum}">
+                                    </td>
+                                    <td>
+                                        <button type="button" id="confirmEdit" onclick="confirmEdit(this, '${SifraArtikla}', '${Kolicina}')">Potvrdi</button>
+                                    </td>
+                                    <td>
+                                        <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Ulaza}', '${SifraArtikla}', '${Naziv}', '${JedinicaMere}', '${Kolicina}', '${formatDatum}')">Ponisti</button>
+                                    </td>`;
 
                     $row.html(rowHTML);
 
                     ipcRenderer.send("req-SifraArtikla");
                     ipcRenderer.once("res-SifraArtikla", (evt, rows) => {
                         let $select = $row.find("#SifraArtikla");
-                        $select.empty();
                         for (let obj of rows) {
                             let temp_SifraArtikla = Object.values(obj)[1];
                             if (temp_SifraArtikla == SifraArtikla) {
@@ -115,8 +114,7 @@
 
                     ipcRenderer.send("req-Naziv-JedinicaMere", SifraArtikla);
                     ipcRenderer.once("res-Naziv-JedinicaMere", (evt, row) => {
-                        let values = Object.values(row);
-                        let Naziv = values[0], JedinicaMere = values[1];
+                        let [Naziv, JedinicaMere] = Object.values(row);
 
                         $row.find("#Naziv").attr("placeholder", Naziv);
                         $row.find("#JedinicaMere").attr("placeholder", JedinicaMere);

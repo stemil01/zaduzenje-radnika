@@ -2,6 +2,11 @@
 <html>
     <head>
         <%- include('partials/head') %>
+        <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../node_modules/bootstrap-select/dist/css/bootstrap-select.min.css">
+        <script defer>require('popper.js')</script>
+        <script defer>require('bootstrap')</script>
+        <script defer>require('bootstrap-select')</script>
     </head>
     <body>
         <%- include('partials/navigation') %>
@@ -31,6 +36,160 @@
                 ipcRenderer.send("open-insert-window", 'views/popups/insertZaduzenje.html');
             }
 
+            $(document).ready(function() {
+                $(document).on("click", ".deleteRow", function() {
+                    let $row = $(this).closest("tr");
+                    let ID_Zaduzenja = $row.find("td:first").text();
+                    
+                    ipcRenderer.send("delete-Zaduzenje", ID_Zaduzenja);
+                    ipcRenderer.once("deletedRow", () => {
+                        $row.remove();
+
+                        let index = rowsZaduzenje.findIndex((element) => {
+                            return element.ID_Zaduzenja == ID_Zaduzenja;
+                        });
+                        rowsZaduzenje.splice(index, 1);
+                    });
+                });
+
+                $(document).on("click", ".editRow", function() {
+                    let $row = $(this).closest("tr");
+                    let values = $row.find("td");
+                    let ID_Zaduzenja = values.eq(0).text(), PrezimeIme = values.eq(1).text();
+                    let SifraArtikla = values.eq(2).text(), Naziv = values.eq(3).text(), JedinicaMere = values.eq(4).text();
+                    let Kolicina = values.eq(5).text(), formatDatum = values.eq(6).text();
+                    let Datum = formatDatum.substr(6, 4) + '-' + formatDatum.substr(3, 2) + '-' + formatDatum.substr(0, 2);
+                    let UkupnaKolicina;
+
+                    ipcRenderer.send("req-Naziv-JedinicaMere-UkupnaKolicina", SifraArtikla);
+                    ipcRenderer.once("res-Naziv-JedinicaMere-UkupnaKolicina", (evt, row) => {
+                        UkupnaKolicina = Object.values(row)[2];
+
+                        let rowHTML = `<td class="value" style="display: none;" id="ID_Zaduzenja">${ID_Zaduzenja}</td>
+                                    <td>
+                                            <select id="PrezimeIme" class="selectpicker" data-live-search="true" required></select>
+                                    </td>
+                                    <td>
+                                            <select id="SifraArtikla" class="selectpicker" data-live-search="true" required></select>
+                                    </td>
+                                    <td>
+                                            <input id="Naziv" type="text" placeholder="${Naziv}" readonly>
+                                    </td>
+                                    <td>
+                                            <input id="JedinicaMere" type="text" placeholder="${JedinicaMere}" readonly>
+                                    </td>
+                                    <td>
+                                            <input id="Kolicina" type="number" value="${Kolicina}" placeholder="U skladistu je ${UkupnaKolicina}">
+                                    </td>
+                                    <td>
+                                            <input id="Datum" type="date" value="${Datum}">
+                                    </td>
+                                    <td>
+                                            <button type="button" id="confirmEdit" onclick="confirmEdit(this, '${PrezimeIme}', '${SifraArtikla}', '${Kolicina}')">Potvrdi</button>
+                                    </td>
+                                    <td>
+                                            <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Zaduzenja}', '${PrezimeIme}', '${SifraArtikla}', '${Naziv}', '${JedinicaMere}', '${Kolicina}', '${formatDatum}')">Ponisti</button>
+                                    </td>`;
+
+                        $row.html(rowHTML);
+                    });
+
+                    ipcRenderer.send("req-Radnik");
+                    ipcRenderer.once("res-Radnik", (evt, rows) => {
+                        let $select = $row.find("#PrezimeIme");
+                        $select.empty();
+                        for (let obj of rows) {
+                            let temp_PrezimeIme = Object.values(obj)[1];
+                            if (temp_PrezimeIme == PrezimeIme) {
+                                $select.append(`<option value="${temp_PrezimeIme}" selected>${temp_PrezimeIme}</option>`)
+                            } else {
+                                $select.append(`<option value="${temp_PrezimeIme}">${temp_PrezimeIme}</option>`)
+                            }
+                        }
+                        $select.selectpicker('refresh');
+                    });
+
+                    ipcRenderer.send("req-SifraArtikla");
+                    ipcRenderer.once("res-SifraArtikla", (evt, rows) => {
+                        let $select = $row.find("#SifraArtikla");
+                        for (let obj of rows) {
+                            let temp_SifraArtikla = Object.values(obj)[1];
+                            if (temp_SifraArtikla == SifraArtikla) {
+                                $select.append(`<option value="${temp_SifraArtikla}" selected>${temp_SifraArtikla}</option>`);
+                            } else {
+                                $select.append(`<option value="${temp_SifraArtikla}">${temp_SifraArtikla}</option>`);
+                            }
+                        }
+                        $select.selectpicker('refresh');
+                    });
+                });
+
+                $(document).on("change", "#SifraArtikla", function() {
+                    let SifraArtikla = $(this).val();
+                    let $row = $(this).closest("tr");
+
+                    ipcRenderer.send("req-Naziv-JedinicaMere-UkupnaKolicina", SifraArtikla);
+                    ipcRenderer.once("res-Naziv-JedinicaMere-UkupnaKolicina", (evt, row) => {
+                        let [Naziv, JedinicaMere, UkupnaKolicina] = Object.values(row);
+
+                        $row.find("#Naziv").attr("placeholder", Naziv);
+                        $row.find("#JedinicaMere").attr("placeholder", JedinicaMere);
+                        $row.find("#Kolicina").attr("placeholder", `U skladistu je ${UkupnaKolicina}`);
+                    });
+                });
+            });
+
+            function confirmEdit(btn, prev_PrezimeIme, prev_SifraArtikla, prev_Kolicina) {
+                let $row = $(btn).closest("tr");
+                let ID_Zaduzenja = $row.find("#ID_Zaduzenja").text();
+                let PrezimeIme = $row.find("#PrezimeIme").val();
+                let SifraArtikla = $row.find("#SifraArtikla").val(), Naziv = $row.find("#Naziv").attr("placeholder"), JedinicaMere = $row.find("#JedinicaMere").attr("placeholder");
+                let Kolicina = $row.find("#Kolicina").val(), Datum = $row.find("#Datum").val();
+                let formatDatum = Datum.substr(8, 2) + '.' + Datum.substr(5, 2) + '.' + Datum.substr(0, 4) + '.';
+
+                ipcRenderer.send("edit-Zaduzenje", ID_Zaduzenja, prev_PrezimeIme, prev_SifraArtikla, prev_Kolicina, PrezimeIme, SifraArtikla, Kolicina, Datum);
+                ipcRenderer.once("edited-Zaduzenje", () => {
+                    let rowHMTL = `<td class="value" style="display: none;">${ID_Zaduzenja}</td>
+                                    <td class="value">${PrezimeIme}</td>
+                                    <td class="value">${SifraArtikla}</td>
+                                    <td class="value">${Naziv}</td>
+                                    <td class="value">${JedinicaMere}</td>
+                                    <td class="value">${Kolicina}</td>
+                                    <td class="value">${formatDatum}</td>
+                                    <td><button type="button" class="deleteRow">X</button></td>
+                                    <td><button type="button" class="editRow">E</button></td>`;
+
+                    $row.html(rowHMTL);
+
+                    let index = rowsZaduzenje.findIndex((element) => {
+                        return element.ID_Zaduzenja == ID_Zaduzenja;
+                    });
+                    rowsZaduzenje[index] = {
+                        ID_Zaduzenja: ID_Zaduzenja,
+                        PrezimeIme: PrezimeIme,
+                        SifraArtikla: SifraArtikla,
+                        Naziv: Naziv,
+                        JedinicaMere: JedinicaMere,
+                        Kolicina: Kolicina,
+                        Datum: Datum
+                    };
+                });
+                
+            }
+
+            function cancelEdit(btn, ID_Zaduzenja, PrezimeIme, SifraArtikla, Naziv, JedinicaMere, Kolicina, Datum) {
+                let rowHTML = `<td class="value" style="display: none;">${ID_Zaduzenja}</td>
+                                    <td class="value">${PrezimeIme}</td> 
+                                    <td class="value">${SifraArtikla}</td> 
+                                    <td class="value">${Naziv}</td> 
+                                    <td class="value">${JedinicaMere}</td> 
+                                    <td class="value">${Kolicina}</td> 
+                                    <td class="value">${Datum}</td> 
+                                    <td><button type="button" class="deleteRow">X</button></td>
+                                    <td><button type="button" class="editRow">E</button></td>`;
+
+                $(btn).closest("tr").html(rowHTML);
+            }
         </script>
     </body>
     <footer>
