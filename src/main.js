@@ -423,83 +423,80 @@ app.on('ready', () => {
 
     ipcMain.on("edit-Zaduzenje", (evt, ID_Zaduzenja, prev_PrezimeIme, prev_SifraArtikla, prev_Kolicina, PrezimeIme, SifraArtikla, Kolicina, Datum) => {
         let prev_ID_Radnika, prev_ID_Artikla, ID_Radnika, ID_Artikla;
-        database.db.serialize(() => {
-            database.db.get(`SELECT ID_Radnika FROM Radnik WHERE PrezimeIme=?`, prev_PrezimeIme, (err, rows) => {
-                if (err) {
-                    throw err;
-                }
-                prev_ID_Radnika = Object.values(rows)[0];
-            });
+        database.db.get(`SELECT ID_Radnika FROM Radnik WHERE PrezimeIme=?`, prev_PrezimeIme, (err, rows) => {
+            if (err) {
+                throw err;
+            }
+            prev_ID_Radnika = Object.values(rows)[0];
             database.db.get(`SELECT ID_Artikla FROM Artikl WHERE SifraArtikla=?`, prev_SifraArtikla, (err, rows) => {
                 if (err) {
                     throw err;
                 }
                 prev_ID_Artikla = Object.values(rows)[0];
-            });
-            database.db.get(`SELECT ID_Radnika FROM Radnik WHERE PrezimeIme=?`, PrezimeIme, (err, rows) => {
-                if (err) {
-                    throw err;
-                }
-                ID_Radnika = Object.values(rows)[0];
-            });
-            database.db.get(`SELECT ID_Artikla FROM Artikl WHERE SifraArtikla=?`, SifraArtikla, (err, rows) => {
-                if (err) {
-                    throw err;
-                }
-                ID_Artikla = Object.values(rows)[0];
-            });
-
-            database.db.run(`
-                UPDATE Artikl
-                SET UkupnaKolicina=UkupnaKolicina+?
-                WHERE SifraArtikla=?
-            `, [prev_Kolicina, prev_SifraArtikla], (err) => {
-                if (err) {
-                    dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                } else {
-                    database.db.run(`
-                        UPDATE ZaduzenjePoRadniku
-                        SET Kolicina=Kolicina-?
-                        WHERE ID_Radnika=? AND ID_Artikla=?
-                    `, [prev_Kolicina, prev_ID_Radnika, prev_ID_Artikla], (err) => {
+                database.db.get(`SELECT ID_Radnika FROM Radnik WHERE PrezimeIme=?`, PrezimeIme, (err, rows) => {
+                    if (err) {
+                        throw err;
+                    }
+                    ID_Radnika = Object.values(rows)[0];
+                    database.db.get(`SELECT ID_Artikla FROM Artikl WHERE SifraArtikla=?`, SifraArtikla, (err, rows) => {
                         if (err) {
-                            dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                        } else {
-                            database.db.run(`
-                                UPDATE Artikl
-                                SET UkupnaKolicina=UkupnaKolicina-?
-                                WHERE SifraArtikla=?
-                            `, [Kolicina, SifraArtikla], (err) => {
-                                if (err) {
-                                    dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                                } else {
-                                    database.db.run(`
-                                        INSERT INTO ZaduzenjePoRadniku(ID_Radnika, ID_Artikla, Kolicina)
-                                        VALUES(?, ?, ?)
-                                        ON CONFLICT(ID_Radnika, ID_Artikla)
-                                        DO UPDATE SET Kolicina=Kolicina+?
-                                    `, [ID_Radnika, ID_Artikla, Kolicina, Kolicina], (err) => {
-                                        if (err) { 
-                                            dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                                        } else {
-                                            database.db.run(`
-                                                UPDATE Zaduzenje
-                                                SET ID_Radnika=?, ID_Artikla=?, Kolicina=?, Datum=?
-                                                WHERE ID_Zaduzenja=?
-                                            `, [ID_Radnika, ID_Artikla, Kolicina, Datum, ID_Zaduzenja], (err) => {
-                                                if (err) {
-                                                    dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                                                } else {
-                                                    win.webContents.send("edited-Zaduzenje");
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
+                            throw err;
                         }
+                        ID_Artikla = Object.values(rows)[0];
+                        database.db.run(`
+                            UPDATE Artikl
+                            SET UkupnaKolicina=UkupnaKolicina+?
+                            WHERE SifraArtikla=?
+                        `, [prev_Kolicina, prev_SifraArtikla], (err) => {
+                            if (err) {
+                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                            } else {
+                                database.db.run(`
+                                    UPDATE ZaduzenjePoRadniku
+                                    SET Kolicina=Kolicina-?
+                                    WHERE ID_Radnika=? AND ID_Artikla=?
+                                `, [prev_Kolicina, prev_ID_Radnika, prev_ID_Artikla], (err) => {
+                                    if (err) {
+                                        dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                                    } else {
+                                        database.db.run(`
+                                            UPDATE Artikl
+                                            SET UkupnaKolicina=UkupnaKolicina-?
+                                            WHERE SifraArtikla=?
+                                        `, [Kolicina, SifraArtikla], (err) => {
+                                            if (err) {
+                                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                                            } else {
+                                                database.db.run(`
+                                                    INSERT INTO ZaduzenjePoRadniku(ID_Radnika, ID_Artikla, Kolicina)
+                                                    VALUES(?, ?, ?)
+                                                    ON CONFLICT(ID_Radnika, ID_Artikla)
+                                                    DO UPDATE SET Kolicina=Kolicina+?
+                                                `, [ID_Radnika, ID_Artikla, Kolicina, Kolicina], (err) => {
+                                                    if (err) { 
+                                                        dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                                                    } else {
+                                                        database.db.run(`
+                                                            UPDATE Zaduzenje
+                                                            SET ID_Radnika=?, ID_Artikla=?, Kolicina=?, Datum=?
+                                                            WHERE ID_Zaduzenja=?
+                                                        `, [ID_Radnika, ID_Artikla, Kolicina, Datum, ID_Zaduzenja], (err) => {
+                                                            if (err) {
+                                                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                                                            } else {
+                                                                win.webContents.send("edited-Zaduzenje");
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
                     });
-                }
+                });
             });
         });
     });
@@ -525,18 +522,16 @@ app.on('ready', () => {
         let response = dialog.showMessageBoxSync(options);
         if (response == 0) {
             let ID_Radnika, ID_Artikla, Kolicina;
-            database.db.serialize(() => {
-                database.db.get(`
-                    SELECT ID_Radnika, ID_Artikla, Kolicina
-                    FROM Zaduzenje
-                    WHERE ID_Zaduzenja=?
-                `, ID_Zaduzenja, (err, row) => {
-                    if (err) {
-                        throw err;
-                    }
-                    [ID_Radnika, ID_Artikla, Kolicina] = Object.values(row);
-                });
-
+            database.db.get(`
+                SELECT ID_Radnika, ID_Artikla, Kolicina
+                FROM Zaduzenje
+                WHERE ID_Zaduzenja=?
+            `, ID_Zaduzenja, (err, row) => {
+                if (err) {
+                    throw err;
+                }
+                [ID_Radnika, ID_Artikla, Kolicina] = Object.values(row);
+                    
                 database.db.run(`
                     UPDATE Artikl
                     SET UkupnaKolicina=UkupnaKolicina+?
@@ -556,7 +551,7 @@ app.on('ready', () => {
                         database.db.run(`
                             DELETE FROM Zaduzenje
                             WHERE ID_Zaduzenja=?
-                        `, [ID_Zaduzenja], (err) => {
+                        `, ID_Zaduzenja, (err) => {
                             if (err) {
                                 throw err;
                             }

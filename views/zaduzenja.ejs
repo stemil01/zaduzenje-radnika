@@ -11,9 +11,14 @@
     <body>
         <%- include('partials/navigation') %>
 
-        <input id="searchZaduzenja" placeholder="Pretrazi po...">
-        <select id="seachBy">
-            <option value="">Radniku</option>
+        <input id="searchInput" placeholder="Pretrazi po...">
+        <select id="searchBy">
+            <option value="PrezimeIme">Radniku</option>
+            <option value="SifraArtikla">Sifri artikla</option>
+            <option value="Naziv" selected>Nazivu</option>
+            <option value="JedinicaMere">Jedinici mere</option>
+            <option value="Kolicina">Kolicini</option>
+            <option value="Datum">Datumu</option>
         </select>
 
         <table id="listaZaduzenja"></table>
@@ -25,6 +30,7 @@
             const $ = require('jquery');
 
             let rowsZaduzenje;
+            let descPrezimeIme = true, descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descKolicina = true, descDatum = true;
             
             ipcRenderer.send("list-Zaduzenje");
             ipcRenderer.on("rows-Zaduzenje", (evt, rows) => {
@@ -137,6 +143,59 @@
                         $row.find("#Kolicina").attr("placeholder", `U skladistu je ${UkupnaKolicina}`);
                     });
                 });
+
+                $(document).on("click", ".headerCell", function() {
+                    let attribute = $(this).text();
+                    let desc;
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
+                    switch (attribute) {
+                        case "PrezimeIme":
+                            desc = descPrezimeIme;
+                            descPrezimeIme = !descPrezimeIme;
+                            break;
+                        case "SifraArtikla":
+                            desc = descSifraArtikla; 
+                            descSifraArtikla = !descSifraArtikla;
+                            break;
+                        case "Naziv":
+                            desc = descNaziv;
+                            descNaziv = !descNaziv;
+                            break;
+                        case "JedinicaMere":
+                            desc = descJedinicaMere;
+                            descJedinicaMere = !descJedinicaMere;
+                            break;
+                        case "Kolicina":
+                            desc = descKolicina;
+                            descKolicina = !descKolicina;
+                            break;
+                        case "Datum":
+                            desc = descDatum;
+                            descDatum = !descDatum;
+                            break;
+                        default:
+                            console.log('Ne poklapa se ime kolone');
+                            break;
+                    }
+
+                    createTable("listaZaduzenja", filterTable(rowsZaduzenje, attribute, desc, key, searchBy), true);
+                });
+
+                $(document).on("change keyup paste", "#searchInput", debounce(() => {
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
+
+                    createTable("listaZaduzenja", searchTable(rowsZaduzenje, key, searchBy), true);
+                }, 350));
+
+                $(document).on("change", "#searchBy", function() {
+                    let key = $("#searchInput").val();
+                    let searchBy = $("#searchBy").val();
+
+                    createTable("listaZaduzenja", searchTable(rowsZaduzenje, key, searchBy), true);
+                });
+
             });
 
             function confirmEdit(btn, prev_PrezimeIme, prev_SifraArtikla, prev_Kolicina) {
