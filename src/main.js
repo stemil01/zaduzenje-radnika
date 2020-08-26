@@ -517,6 +517,57 @@ app.on('ready', () => {
         });
     });
 
+    ipcMain.on("delete-Zaduzenje", (evt, ID_Zaduzenja) => {
+        let options = {
+            buttons: ["Da", "Ne"],
+            message: "Da ste sigurni da zelite da obrisete?"
+        };
+        let response = dialog.showMessageBoxSync(options);
+        if (response == 0) {
+            let ID_Radnika, ID_Artikla, Kolicina;
+            database.db.serialize(() => {
+                database.db.get(`
+                    SELECT ID_Radnika, ID_Artikla, Kolicina
+                    FROM Zaduzenje
+                    WHERE ID_Zaduzenja=?
+                `, ID_Zaduzenja, (err, row) => {
+                    if (err) {
+                        throw err;
+                    }
+                    [ID_Radnika, ID_Artikla, Kolicina] = Object.values(row);
+                });
+
+                database.db.run(`
+                    UPDATE Artikl
+                    SET UkupnaKolicina=UkupnaKolicina+?
+                    WHERE ID_Artikla=?
+                `, [Kolicina, ID_Artikla], (err) => {
+                    if (err) {
+                        throw err;
+                    }
+                    database.db.run(`
+                        UPDATE ZaduzenjePoRadniku
+                        SET Kolicina=Kolicina-?
+                        WHERE ID_Radnika=? AND ID_Artikla=?
+                    `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
+                        if (err) {
+                            throw err;
+                        }
+                        database.db.run(`
+                            DELETE FROM Zaduzenje
+                            WHERE ID_Zaduzenja=?
+                        `, [ID_Zaduzenja], (err) => {
+                            if (err) {
+                                throw err;
+                            }
+                            win.webContents.send("deletedRow");
+                        });
+                    });
+                });
+            });
+        }
+    });
+
     // OPSTE
     ipcMain.on("open-insert-window", (evt, path) => {
         let insertWin = new BrowserWindow({

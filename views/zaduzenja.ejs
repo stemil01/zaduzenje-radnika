@@ -92,35 +92,35 @@
                                     </td>`;
 
                         $row.html(rowHTML);
-                    });
-
-                    ipcRenderer.send("req-Radnik");
-                    ipcRenderer.once("res-Radnik", (evt, rows) => {
-                        let $select = $row.find("#PrezimeIme");
-                        $select.empty();
-                        for (let obj of rows) {
-                            let temp_PrezimeIme = Object.values(obj)[1];
-                            if (temp_PrezimeIme == PrezimeIme) {
-                                $select.append(`<option value="${temp_PrezimeIme}" selected>${temp_PrezimeIme}</option>`)
-                            } else {
-                                $select.append(`<option value="${temp_PrezimeIme}">${temp_PrezimeIme}</option>`)
+                        
+                        ipcRenderer.send("req-Radnik");
+                        ipcRenderer.once("res-Radnik", (evt, rows) => {
+                            let $select = $row.find("#PrezimeIme");
+                            $select.empty();
+                            for (let obj of rows) {
+                                let temp_PrezimeIme = Object.values(obj)[1];
+                                if (temp_PrezimeIme == PrezimeIme) {
+                                    $select.append(`<option value="${temp_PrezimeIme}" selected>${temp_PrezimeIme}</option>`)
+                                } else {
+                                    $select.append(`<option value="${temp_PrezimeIme}">${temp_PrezimeIme}</option>`)
+                                }
                             }
-                        }
-                        $select.selectpicker('refresh');
-                    });
+                            $select.selectpicker('refresh');
+                        });
 
-                    ipcRenderer.send("req-SifraArtikla");
-                    ipcRenderer.once("res-SifraArtikla", (evt, rows) => {
-                        let $select = $row.find("#SifraArtikla");
-                        for (let obj of rows) {
-                            let temp_SifraArtikla = Object.values(obj)[1];
-                            if (temp_SifraArtikla == SifraArtikla) {
-                                $select.append(`<option value="${temp_SifraArtikla}" selected>${temp_SifraArtikla}</option>`);
-                            } else {
-                                $select.append(`<option value="${temp_SifraArtikla}">${temp_SifraArtikla}</option>`);
+                        ipcRenderer.send("req-SifraArtikla");
+                        ipcRenderer.once("res-SifraArtikla", (evt, rows) => {
+                            let $select = $row.find("#SifraArtikla");
+                            for (let obj of rows) {
+                                let temp_SifraArtikla = Object.values(obj)[1];
+                                if (temp_SifraArtikla == SifraArtikla) {
+                                    $select.append(`<option value="${temp_SifraArtikla}" selected>${temp_SifraArtikla}</option>`);
+                                } else {
+                                    $select.append(`<option value="${temp_SifraArtikla}">${temp_SifraArtikla}</option>`);
+                                }
                             }
-                        }
-                        $select.selectpicker('refresh');
+                            $select.selectpicker('refresh');
+                        });
                     });
                 });
 
