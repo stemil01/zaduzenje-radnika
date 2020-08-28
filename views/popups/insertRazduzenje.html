@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../style.css">
+        <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../../node_modules/bootstrap-select/dist/css/bootstrap-select.min.css">
+        <script defer>require('popper.js')</script>
+        <script defer>require('bootstrap')</script>
+        <script defer>require('bootstrap-select')</script>
+        <title>Novo razduzenje</title>
+    </head>
+    <body>
+        <form id="ulazRazduzenje">
+            <label for="PrezimeIme">Radnik:</label>
+            <select id="PrezimeIme" class="selectpicker" data-live-search="true" data-title="Izaberite radnika" required></select>
+            <br>
+            <label for="SifraArtikla">Sifra artikla:</label>
+            <select id="SifraArtikla" class="selectpicker" data-live-search="true" data-title="Izaberite artikl" required></select>
+            <br>
+            <label for="Kolicina" id="labelKolicina">Kolicina:</label>
+            <input type="number" id="Kolicina" required>
+            <br>
+            <label for="Datum">Datum:</label>
+            <input type="date" id="Datum" required>
+            <br>
+            <input type="submit" value="Unesi">
+        </form>
+        <button type="button" onclick="closeWin()">Zatvori</button>
+
+        <script>
+            const { ipcRenderer, remote } = require('electron');
+            const $ = require('jquery');
+
+            ipcRenderer.send("req-zaduzen-Radnik");
+            ipcRenderer.once("res-zaduzen-Radnik", (evt, rows) => {
+                for (obj of rows) {
+                    let [ID_Radnika, PrezimeIme] = Object.values(obj);
+                    $("#PrezimeIme").append(`<option value="${ID_Radnika}">${PrezimeIme}</option>`);
+                }
+                $("#PrezimeIme").selectpicker('refresh');
+            });
+
+            ipcRenderer.send("req-zaduzen-Artikl");
+            ipcRenderer.once("res-zaduzen-Artikl", (evt, rows) => {
+                for (let obj of rows) {
+                    let [ID_Artikla, SifraArtikla, Naziv] = Object.values(obj);
+                    $("#SifraArtikla").append(`<option value="${ID_Artikla}">${SifraArtikla} - ${Naziv}</option>`)
+                }
+                $("#SifraArtikla").selectpicker('refresh');
+            });
+
+            let currentDate = new Date();
+            let day = currentDate.getDate(), month = currentDate.getMonth() + 1, year = currentDate.getFullYear();
+            if (day < 10) day = '0' + day;
+            if (month < 10) month = '0' + month;
+            $("#Datum").val(year + '-' + month + '-' + day);
+
+            function closeWin() {
+                remote.getCurrentWindow().close();
+            }
+
+            $(document).ready(function() {
+                $(document).on("change", "#PrezimeIme", function() {
+                    let ID_Radnika = $("#PrezimeIme").val();
+                    let ID_Artikla = $("#SifraArtikla").val();
+                    ipcRenderer.send("req-Artikl-zaRadnik", ID_Radnika);
+                    ipcRenderer.once("res-Artikl-zaRadnik", (evt, rows) => {
+                        $("#SifraArtikla").empty();
+                        for (let obj of rows) {
+                            let [temp_ID_Artikla, temp_SifraArtikla, temp_Naziv] = Object.values(obj);
+                            if (temp_ID_Artikla == ID_Artikla) {
+                                $("#SifraArtikla").append(`<option value="${temp_ID_Artikla}" selected>${temp_SifraArtikla} - ${temp_Naziv}</option>`)
+                            } else {
+                                $("#SifraArtikla").append(`<option value="${temp_ID_Artikla}">${temp_SifraArtikla} - ${temp_Naziv}</option>`)
+                            }
+                        }
+                        $("#SifraArtikla").selectpicker('refresh');
+                    });
+
+                    if (ID_Artikla) {
+                        ipcRenderer.send("req-ZaduzenjePoRadniku", ID_Radnika, ID_Artikla);
+                        ipcRenderer.once("res-ZaduzenjePoRadniku", (evt, row) => {
+                            let [Kolicina] = Object.values(row);
+
+                            $("#Kolicina").attr("max", Kolicina);
+                            $("#Kolicina").attr("placeholder", `Zaduzeno je ${Kolicina}`);
+                        });
+                    }
+                });
+
+                $(document).on("change", "#SifraArtikla", function() {
+                    let ID_Artikla = $("#SifraArtikla").val();
+                    let ID_Radnika = $("#PrezimeIme").val();
+                    ipcRenderer.send("get-JedinicaMere", ID_Artikla);
+                    ipcRenderer.once("JedinicaMere", (evt, row) => {
+                        let [JedinicaMere] = Object.values(row)[0];
+                        $("#labelKolicina").html(`Kolicina (${JedinicaMere}):`);
+                    });
+
+                    ipcRenderer.send("req-Radnik-zaArtikl", ID_Artikla);
+                    ipcRenderer.once("res-Radnik-zaArtikl", (evt, rows) => {
+                        $("#PrezimeIme").empty();
+                        for (obj of rows) {
+                            let [temp_ID_Radnika, temp_PrezimeIme] = Object.values(obj);
+                            if (temp_ID_Radnika == ID_Radnika) {
+                                $("#PrezimeIme").append(`<option value="${temp_ID_Radnika}" selected>${temp_PrezimeIme}</option>`);
+                            } else {
+                                $("#PrezimeIme").append(`<option value="${temp_ID_Radnika}">${temp_PrezimeIme}</option>`);
+                            }
+                        }
+                        $("#PrezimeIme").selectpicker('refresh');
+                    });
+
+                    if (ID_Radnika) {
+                        ipcRenderer.send("req-ZaduzenjePoRadniku", ID_Radnika, ID_Artikla);
+                        ipcRenderer.once("res-ZaduzenjePoRadniku", (evt, row) => {
+                            let [Kolicina] = Object.values(row);
+
+                            $("#Kolicina").attr("max", Kolicina);
+                            $("#Kolicina").attr("placeholder", `Zaduzeno je ${Kolicina}`);
+                        });
+                    }
+                });
+
+                $(document).on("submit", "#ulazRazduzenje", function() {
+                    let ID_Radnika = $("#PrezimeIme").val();
+                    let ID_Artikla = $("#SifraArtikla").val();
+                    let Kolicina = $("#Kolicina").val();
+                    let Datum = $("#Datum").val();
+
+                    ipcRenderer.send("insert-Razduzenje", ID_Radnika, ID_Artikla, Kolicina, Datum);
+                });
+            });
+        </script>
+    </body>
+</html>

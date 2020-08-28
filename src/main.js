@@ -212,24 +212,22 @@ app.on('ready', () => {
     });
 
     ipcMain.on("insert-Ulaz", (evt, ID_Artikla, Kolicina, Datum) => {
-        database.db.serialize(() => {
-            database.db.run(`INSERT INTO Ulaz(ID_Artikla, Kolicina, Datum)
-                            VALUES(?, ?, ?)`, [ID_Artikla, Kolicina, Datum], (err) => {
-                                if (err) {
-                                    dialog.showErrorBox("Greska pri unosu podataka", err.message);
-                                } else {
-                                    database.db.run(`UPDATE Artikl
-                                                    SET UkupnaKolicina=UkupnaKolicina + ?
-                                                    WHERE ID_Artikla=?`, [Kolicina, ID_Artikla], (err) => {
-                                                        if (err) {
-                                                            dialog.showErrorBox("Problem sa unetom kolicinom", err.message);
-                                                        } else {
-                                                            win.reload();
-                                                        }
-                                                    })
-                                }
-                            });
-        });
+        database.db.run(`INSERT INTO Ulaz(ID_Artikla, Kolicina, Datum)
+                        VALUES(?, ?, ?)`, [ID_Artikla, Kolicina, Datum], (err) => {
+                            if (err) {
+                                dialog.showErrorBox("Greska pri unosu podataka", err.message);
+                            } else {
+                                database.db.run(`UPDATE Artikl
+                                                SET UkupnaKolicina=UkupnaKolicina + ?
+                                                WHERE ID_Artikla=?`, [Kolicina, ID_Artikla], (err) => {
+                                                    if (err) {
+                                                        dialog.showErrorBox("Problem sa unetom kolicinom", err.message);
+                                                    } else {
+                                                        win.reload();
+                                                    }
+                                                })
+                            }
+                        });
     });
 
     ipcMain.on("delete-Ulaz", (evt, ID_Ulaza) => {
@@ -239,31 +237,29 @@ app.on('ready', () => {
         };
         let response = dialog.showMessageBoxSync(options);
         if (response == 0) {
-            database.db.serialize(() => {
-                database.db.run(`UPDATE Artikl
-                                SET UkupnaKolicina=UkupnaKolicina - (
-                                    SELECT Kolicina
-                                    FROM Ulaz
-                                    WHERE ID_Ulaza=?
-                                )
-                                WHERE ID_Artikla=(
-                                    SELECT ID_Artikla
-                                    FROM Ulaz
-                                    WHERE ID_Ulaza=?
-                                )`, [ID_Ulaza, ID_Ulaza], (err) => {
-                                    if (err) {
-                                        throw err;
-                                    } else {
-                                        database.db.run(`DELETE FROM Ulaz
-                                                        WHERE ID_Ulaza=?`, ID_Ulaza, (err) => {
-                                                            if (err) {
-                                                                throw err;
-                                                            }
-                                                            win.webContents.send("deletedRow");
-                                                        });
-                                    }
-                                });
-            });
+            database.db.run(`UPDATE Artikl
+                            SET UkupnaKolicina=UkupnaKolicina - (
+                                SELECT Kolicina
+                                FROM Ulaz
+                                WHERE ID_Ulaza=?
+                            )
+                            WHERE ID_Artikla=(
+                                SELECT ID_Artikla
+                                FROM Ulaz
+                                WHERE ID_Ulaza=?
+                            )`, [ID_Ulaza, ID_Ulaza], (err) => {
+                                if (err) {
+                                    throw err;
+                                } else {
+                                    database.db.run(`DELETE FROM Ulaz
+                                                    WHERE ID_Ulaza=?`, ID_Ulaza, (err) => {
+                                                        if (err) {
+                                                            throw err;
+                                                        }
+                                                        win.webContents.send("deletedRow");
+                                                    });
+                                }
+                            });
         }
     });
 
@@ -279,33 +275,31 @@ app.on('ready', () => {
     });
 
     ipcMain.on("edit-Ulaz", (evt, ID_Ulaza, prev_SifraArtikla, SifraArtikla, prev_Kolicina, Kolicina, Datum) => {
-        database.db.serialize(() => {
-            database.db.run(`UPDATE Artikl
-                            SET UkupnaKolicina=UkupnaKolicina - ?
-                            WHERE SifraArtikla=?`, [prev_Kolicina, prev_SifraArtikla], (err) => {
-                                if (err) {
-                                    throw err;
-                                } else {
-                                    database.db.run(`UPDATE Artikl
-                                                    SET UkupnaKolicina=UkupnaKolicina + ?
-                                                    WHERE SifraArtikla=?`, [Kolicina, SifraArtikla], (err) => {
-                                                        if (err) {
-                                                            dialog.showErrorBox("Greska pri unosu podataka marko", err.message);
-                                                        } else {
-                                                            database.db.run(`UPDATE Ulaz
-                                                                            SET ID_Artikla=(SELECT ID_Artikla FROM Artikl WHERE SifraArtikla=?), Kolicina=?, Datum=?
-                                                                            WHERE ID_Ulaza=?`, [SifraArtikla, Kolicina, Datum, ID_Ulaza], (err) => {
-                                                                                if (err) {
-                                                                                    dialog.showErrorBox("Greska pri unosu podataka", err.message);
-                                                                                } else {
-                                                                                    win.webContents.send("edited-Ulaz");
-                                                                                }
-                                                                            });
-                                                            }
-                                    });
-                                }
-                            });
-        }); 
+        database.db.run(`UPDATE Artikl
+                        SET UkupnaKolicina=UkupnaKolicina - ?
+                        WHERE SifraArtikla=?`, [prev_Kolicina, prev_SifraArtikla], (err) => {
+                            if (err) {
+                                throw err;
+                            } else {
+                                database.db.run(`UPDATE Artikl
+                                                SET UkupnaKolicina=UkupnaKolicina + ?
+                                                WHERE SifraArtikla=?`, [Kolicina, SifraArtikla], (err) => {
+                                                    if (err) {
+                                                        dialog.showErrorBox("Greska pri unosu podataka marko", err.message);
+                                                    } else {
+                                                        database.db.run(`UPDATE Ulaz
+                                                                        SET ID_Artikla=(SELECT ID_Artikla FROM Artikl WHERE SifraArtikla=?), Kolicina=?, Datum=?
+                                                                        WHERE ID_Ulaza=?`, [SifraArtikla, Kolicina, Datum, ID_Ulaza], (err) => {
+                                                                            if (err) {
+                                                                                dialog.showErrorBox("Greska pri unosu podataka", err.message);
+                                                                            } else {
+                                                                                win.webContents.send("edited-Ulaz");
+                                                                            }
+                                                                        });
+                                                        }
+                                });
+                            }
+                        });
     });
 
     // ipcMain.on("search-Ulaz", (evt, key, searchBy) => {
@@ -392,33 +386,31 @@ app.on('ready', () => {
     });
 
     ipcMain.on("insert-Zaduzenje", (evt, ID_Radnika, ID_Artikla, Kolicina, Datum) => {
-        database.db.serialize(() => {
-            database.db.run(`UPDATE Artikl
-                            SET UkupnaKolicina=UkupnaKolicina-?
-                            WHERE ID_Artikla=?`, [Kolicina, ID_Artikla], (err) => {
-                                if (err) {
-                                    dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                                } else {
-                                    database.db.run(`INSERT INTO ZaduzenjePoRadniku(ID_Radnika, ID_Artikla, Kolicina)
-                                                    VALUES(?, ?, ?)
-                                                    ON CONFLICT(ID_Radnika, ID_Artikla)
-                                                    DO UPDATE SET Kolicina=Kolicina+?`, [ID_Radnika, ID_Artikla, Kolicina, Kolicina], (err) => {
-                                                        if (err) {
-                                                            dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                                                        } else {
-                                                            database.db.run(`INSERT INTO Zaduzenje(ID_Radnika, ID_Artikla, Kolicina, Datum)
-                                                                            VALUES(?, ?, ?, ?)`, [ID_Radnika, ID_Artikla, Kolicina, Datum], (err) => {
-                                                                                if (err) {
-                                                                                    dialog.showMessageBox('Greska pri unosu podataka', err.message);
-                                                                                } else {
-                                                                                    win.reload();
-                                                                                }
-                                                                            });
-                                                        }
-                                                    });
-                                }
-                            });
-        });
+        database.db.run(`UPDATE Artikl
+                        SET UkupnaKolicina=UkupnaKolicina-?
+                        WHERE ID_Artikla=?`, [Kolicina, ID_Artikla], (err) => {
+                            if (err) {
+                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                            } else {
+                                database.db.run(`INSERT INTO ZaduzenjePoRadniku(ID_Radnika, ID_Artikla, Kolicina)
+                                                VALUES(?, ?, ?)
+                                                ON CONFLICT(ID_Radnika, ID_Artikla)
+                                                DO UPDATE SET Kolicina=Kolicina+?`, [ID_Radnika, ID_Artikla, Kolicina, Kolicina], (err) => {
+                                                    if (err) {
+                                                        dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                                                    } else {
+                                                        database.db.run(`INSERT INTO Zaduzenje(ID_Radnika, ID_Artikla, Kolicina, Datum)
+                                                                        VALUES(?, ?, ?, ?)`, [ID_Radnika, ID_Artikla, Kolicina, Datum], (err) => {
+                                                                            if (err) {
+                                                                                dialog.showMessageBox('Greska pri unosu podataka', err.message);
+                                                                            } else {
+                                                                                win.reload();
+                                                                            }
+                                                                        });
+                                                    }
+                                                });
+                            }
+                        });
     });
 
     ipcMain.on("edit-Zaduzenje", (evt, ID_Zaduzenja, prev_PrezimeIme, prev_SifraArtikla, prev_Kolicina, PrezimeIme, SifraArtikla, Kolicina, Datum) => {
@@ -561,6 +553,72 @@ app.on('ready', () => {
                 });
             });
         }
+    });
+
+    // RAZDUZENJE
+    ipcMain.on("req-zaduzen-Radnik", (event) => {
+        database.db.all(`
+            SELECT DISTINCT R.ID_Radnika, R.PrezimeIme
+            FROM Radnik R, ZaduzenjePoRadniku ZR
+            WHERE R.ID_Radnika=ZR.ID_Radnika AND ZR.Kolicina>0
+        `, (err, rows) => {
+            if (err) {
+                throw err;
+            }
+            event.sender.send("res-zaduzen-Radnik", rows);
+        });
+    });
+
+    ipcMain.on("req-zaduzen-Artikl", (event) => {
+        database.db.all(`
+            SELECT DISTINCT A.ID_Artikla, A.SifraArtikla, A.Naziv
+            FROM Artikl A, ZaduzenjePoRadniku ZR
+            WHERE A.ID_Artikla=ZR.ID_Artikla AND ZR.Kolicina>0
+        `, (err, rows) => {
+            if (err) {
+                throw err;
+            }
+            event.sender.send("res-zaduzen-Artikl", rows);
+        });
+    });
+
+    ipcMain.on("req-Artikl-zaRadnik", (event, ID_Radnika) => {
+        database.db.all(`
+            SELECT DISTINCT A.ID_Artikla, A.SifraArtikla, A.Naziv
+            FROM Artikl A, ZaduzenjePoRadniku ZR
+            WHERE A.ID_Artikla=ZR.ID_Artikla AND ZR.ID_Radnika=? AND ZR.Kolicina>0
+        `, ID_Radnika, (err, rows) => {
+            if (err) {
+                throw err;
+            }
+            event.sender.send("res-Artikl-zaRadnik", rows);
+        });
+    });
+
+    ipcMain.on("req-ZaduzenjePoRadniku", (event, ID_Radnika, ID_Artikla) => {
+        database.db.get(`
+            SELECT Kolicina
+            FROM ZaduzenjePoRadniku
+            WHERE ID_Radnika=? AND ID_Artikla=?
+        `, [ID_Radnika, ID_Artikla], (err, row) => {
+            if (err) {
+                throw err;
+            }
+            event.sender.send("res-ZaduzenjePoRadniku", row);
+        });
+    });
+
+    ipcMain.on("req-Radnik-zaArtikl", (event, ID_Artikla) => {
+        database.db.all(`
+            SELECT DISTINCT R.ID_Radnika, R.PrezimeIme
+            FROM Radnik R, ZaduzenjePoRadniku ZR
+            WHERE R.ID_Radnika=ZR.ID_Radnika AND ZR.ID_Artikla=? AND ZR.Kolicina>0
+        `, ID_Artikla, (err, rows) => {
+            if (err) {
+                throw err;
+            }
+            event.sender.send("res-Radnik-zaArtikl", rows);
+        });
     });
 
     // OPSTE
