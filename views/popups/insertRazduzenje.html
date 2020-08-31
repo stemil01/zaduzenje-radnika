@@ -19,7 +19,7 @@
             <select id="SifraArtikla" class="selectpicker" data-live-search="true" data-title="Izaberite artikl" required></select>
             <br>
             <label for="Kolicina" id="labelKolicina">Kolicina:</label>
-            <input type="number" id="Kolicina" required>
+            <input type="number" step="any" id="Kolicina" required>
             <br>
             <label for="Datum">Datum:</label>
             <input type="date" id="Datum" required>
@@ -81,10 +81,12 @@
                     if (ID_Artikla) {
                         ipcRenderer.send("req-ZaduzenjePoRadniku", ID_Radnika, ID_Artikla);
                         ipcRenderer.once("res-ZaduzenjePoRadniku", (evt, row) => {
-                            let [Kolicina] = Object.values(row);
+                            if (row) {
+                                let [Kolicina] = Object.values(row);
 
-                            $("#Kolicina").attr("max", Kolicina);
-                            $("#Kolicina").attr("placeholder", `Zaduzeno je ${Kolicina}`);
+                                $("#Kolicina").attr("max", Kolicina);
+                                $("#Kolicina").attr("placeholder", `Zaduzeno je ${Kolicina}`);
+                            }
                         });
                     }
                 });
@@ -98,19 +100,19 @@
                         $("#labelKolicina").html(`Kolicina (${JedinicaMere}):`);
                     });
 
-                    ipcRenderer.send("req-Radnik-zaArtikl", ID_Artikla);
-                    ipcRenderer.once("res-Radnik-zaArtikl", (evt, rows) => {
-                        $("#PrezimeIme").empty();
-                        for (obj of rows) {
-                            let [temp_ID_Radnika, temp_PrezimeIme] = Object.values(obj);
-                            if (temp_ID_Radnika == ID_Radnika) {
-                                $("#PrezimeIme").append(`<option value="${temp_ID_Radnika}" selected>${temp_PrezimeIme}</option>`);
-                            } else {
-                                $("#PrezimeIme").append(`<option value="${temp_ID_Radnika}">${temp_PrezimeIme}</option>`);
-                            }
-                        }
-                        $("#PrezimeIme").selectpicker('refresh');
-                    });
+                    // ipcRenderer.send("req-Radnik-zaArtikl", ID_Artikla);
+                    // ipcRenderer.once("res-Radnik-zaArtikl", (evt, rows) => {
+                    //     $("#PrezimeIme").empty();
+                    //     for (obj of rows) {
+                    //         let [temp_ID_Radnika, temp_PrezimeIme] = Object.values(obj);
+                    //         if (temp_ID_Radnika == ID_Radnika) {
+                    //             $("#PrezimeIme").append(`<option value="${temp_ID_Radnika}" selected>${temp_PrezimeIme}</option>`);
+                    //         } else {
+                    //             $("#PrezimeIme").append(`<option value="${temp_ID_Radnika}">${temp_PrezimeIme}</option>`);
+                    //         }
+                    //     }
+                    //     $("#PrezimeIme").selectpicker('refresh');
+                    // });
 
                     if (ID_Radnika) {
                         ipcRenderer.send("req-ZaduzenjePoRadniku", ID_Radnika, ID_Artikla);

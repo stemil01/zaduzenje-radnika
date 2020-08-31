@@ -85,7 +85,7 @@
                                             <input id="JedinicaMere" type="text" placeholder="${JedinicaMere}" readonly>
                                     </td>
                                     <td>
-                                            <input id="Kolicina" type="number" value="${Kolicina}" placeholder="U skladistu je ${UkupnaKolicina}">
+                                            <input id="Kolicina" type="number" value="${Kolicina}" max="${UkupnaKolicina}" placeholder="U skladistu je ${UkupnaKolicina}">
                                     </td>
                                     <td>
                                             <input id="Datum" type="date" value="${Datum}">
@@ -102,7 +102,6 @@
                         ipcRenderer.send("req-Radnik");
                         ipcRenderer.once("res-Radnik", (evt, rows) => {
                             let $select = $row.find("#PrezimeIme");
-                            $select.empty();
                             for (let obj of rows) {
                                 let temp_PrezimeIme = Object.values(obj)[1];
                                 if (temp_PrezimeIme == PrezimeIme) {
@@ -114,8 +113,8 @@
                             $select.selectpicker('refresh');
                         });
 
-                        ipcRenderer.send("req-SifraArtikla");
-                        ipcRenderer.once("res-SifraArtikla", (evt, rows) => {
+                        ipcRenderer.send("req-skladiste-SifraArtikla");
+                        ipcRenderer.once("res-skladiste-SifraArtikla", (evt, rows) => {
                             let $select = $row.find("#SifraArtikla");
                             for (let obj of rows) {
                                 let temp_SifraArtikla = Object.values(obj)[1];

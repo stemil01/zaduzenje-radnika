@@ -385,6 +385,20 @@ app.on('ready', () => {
                         });
     });
 
+    ipcMain.on("req-skladiste-SifraArtikla", (event) => {
+        database.db.all(`
+            SELECT ID_Artikla, SifraArtikla, Naziv
+            FROM Artikl
+            WHERE UkupnaKolicina>0
+        `, (err, rows) => {
+            if (err) {
+                throw err;
+            }
+            event.sender.send("res-skladiste-SifraArtikla", rows);
+        });
+    });
+
+
     ipcMain.on("insert-Zaduzenje", (evt, ID_Radnika, ID_Artikla, Kolicina, Datum) => {
         database.db.run(`UPDATE Artikl
                         SET UkupnaKolicina=UkupnaKolicina-?
@@ -608,17 +622,142 @@ app.on('ready', () => {
         });
     });
 
-    ipcMain.on("req-Radnik-zaArtikl", (event, ID_Artikla) => {
+    // ipcMain.on("req-Radnik-zaArtikl", (event, ID_Artikla) => {
+    //     database.db.all(`
+    //         SELECT DISTINCT R.ID_Radnika, R.PrezimeIme
+    //         FROM Radnik R, ZaduzenjePoRadniku ZR
+    //         WHERE R.ID_Radnika=ZR.ID_Radnika AND ZR.ID_Artikla=? AND ZR.Kolicina>0
+    //     `, ID_Artikla, (err, rows) => {
+    //         if (err) {
+    //             throw err;
+    //         }
+    //         event.sender.send("res-Radnik-zaArtikl", rows);
+    //     });
+    // });
+
+    ipcMain.on("insert-Razduzenje", (evt, ID_Radnika, ID_Artikla, Kolicina, Datum) => {
+        database.db.run(`
+            UPDATE ZaduzenjePoRadniku
+            SET Kolicina=Kolicina-?
+            WHERE ID_Radnika=? AND ID_Artikla=?
+        `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
+            if (err) {
+                dialog.showErrorBox('Greska pri unosu podataka', err.message);
+            } else {
+                database.db.run(`
+                    INSERT INTO Razduzenje(ID_Radnika, ID_Artikla, Kolicina, Datum)
+                    VALUES(?, ?, ?, ?)
+                `, [ID_Radnika, ID_Artikla, Kolicina, Datum], (err) => {
+                    if (err) {
+                        dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                    } else {
+                        win.reload();
+                    }
+                });
+            }
+        });
+    });
+
+    ipcMain.on("list-Razduzenje", () => {
         database.db.all(`
-            SELECT DISTINCT R.ID_Radnika, R.PrezimeIme
-            FROM Radnik R, ZaduzenjePoRadniku ZR
-            WHERE R.ID_Radnika=ZR.ID_Radnika AND ZR.ID_Artikla=? AND ZR.Kolicina>0
-        `, ID_Artikla, (err, rows) => {
+            SELECT Rz.ID_Razduzenja, R.PrezimeIme, A.SifraArtikla, A.Naziv, A.JedinicaMere, Rz.Kolicina, Rz.Datum
+            FROM Radnik R, Artikl A, Razduzenje Rz
+            WHERE R.ID_Radnika=Rz.ID_Radnika AND A.ID_Artikla=Rz.ID_Artikla
+        `, (err, rows) => {
             if (err) {
                 throw err;
             }
-            event.sender.send("res-Radnik-zaArtikl", rows);
+            win.webContents.send("rows-Razduzenje", rows);
         });
+    });
+
+    ipcMain.on("get-ID_Radnika-ID_Artikla", (evt, PrezimeIme, SifraArtikla) => {
+        let ID_Radnika, ID_Artikla;
+        database.db.get(`SELECT ID_Radnika FROM Radnik WHERE PrezimeIme=?`, PrezimeIme, (err, row) => {
+            if (err) {
+                throw err;
+            }
+            ID_Radnika = Object.values(row)[0];
+            database.db.get(`SELECT ID_Artikla FROM Artikl WHERE SifraArtikla=?`, SifraArtikla, (err, row) => {
+                if (err) {
+                    throw err;
+                }
+                ID_Artikla = Object.values(row)[0];
+                win.webContents.send("ID_Radnika-ID_Artikla", ID_Radnika, ID_Artikla);
+            });
+        });
+    });
+
+    ipcMain.on("edit-Razduzenje", (evt, ID_Razduzenja, prev_ID_Radnika, prev_ID_Artikla, prev_Kolicina, ID_Radnika, ID_Artikla, Kolicina, Datum) => {
+        database.db.run(`
+            UPDATE ZaduzenjePoRadniku
+            SET Kolicina=Kolicina+?
+            WHERE ID_Radnika=? AND ID_Artikla=?
+        `, [prev_Kolicina, prev_ID_Radnika, prev_ID_Artikla], (err) => {
+            if (err) {
+                dialog.showErrorBox('Greska pri unosu podataka', err.message);
+            } else {
+                database.db.run(`
+                    UPDATE ZaduzenjePoRadniku
+                    SET Kolicina=Kolicina-?
+                    WHERE ID_Radnika=? AND ID_Artikla=?
+                `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
+                    if (err) {
+                        dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                    } else {
+                        database.db.run(`
+                            UPDATE Razduzenje
+                            SET ID_Radnika=?, ID_Artikla=?, Kolicina=?, Datum=?
+                            WHERE ID_Razduzenja=?
+                        `, [ID_Radnika, ID_Artikla, Kolicina, Datum, ID_Razduzenja], (err) => {
+                            if (err) {
+                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                            } else {
+                                win.webContents.send("edited-Razduzenje");
+                            }
+                        })
+                    }
+                })
+            }
+        });
+    });
+
+    ipcMain.on("delete-Razduzenje", (evt, ID_Razduzenja) => {
+        let options = {
+            buttons: ["Da", "Ne"],
+            message: "Da ste sigurni da zelite da obrisete?"
+        };
+        let response = dialog.showMessageBoxSync(options);
+        if (response == 0) {
+            database.db.get(`
+                SELECT ID_Radnika, ID_Artikla, Kolicina
+                FROM Razduzenje
+                WHERE ID_Razduzenja=?
+            `, ID_Razduzenja, (err, row) => {
+                if (err) {
+                    throw err;
+                }
+                let [ID_Radnika, ID_Artikla, Kolicina] = Object.values(row);
+                database.db.run(`
+                    UPDATE ZaduzenjePoRadniku
+                    SET Kolicina=Kolicina+?
+                    WHERE ID_Radnika=? AND ID_Artikla=?
+                `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
+                    if (err) {
+                        throw err;
+                    }
+                    database.db.run(`
+                        DELETE FROM Razduzenje
+                        WHERE ID_Razduzenja=?
+                    `, ID_Razduzenja, (err) => {
+                        if (err) {
+                            throw err;
+                        }
+                        win.webContents.send("deletedRow");
+                    })
+                })
+            });
+        }
     });
 
     // OPSTE

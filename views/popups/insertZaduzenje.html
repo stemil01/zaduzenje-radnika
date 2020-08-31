@@ -19,7 +19,7 @@
             <select id="SifraArtikla" class="selectpicker" data-live-search="true" data-title="Izaberite artikl" required></select>
             <br>
             <label for="Kolicina" id="labelKolicina">Kolicina:</label>
-            <input type="number" id="Kolicina" required>
+            <input type="number" step="any" id="Kolicina" required>
             <br>
             <label for="Datum">Datum:</label>
             <input type="date" id="Datum" required>
@@ -41,8 +41,8 @@
                 $("#PrezimeIme").selectpicker('refresh');
             });
 
-            ipcRenderer.send("req-SifraArtikla");
-            ipcRenderer.once("res-SifraArtikla", (evt, rows) => {
+            ipcRenderer.send("req-skladiste-SifraArtikla");
+            ipcRenderer.once("res-skladiste-SifraArtikla", (evt, rows) => {
                 for (let obj of rows) {
                     let [ID_Artikla, SifraArtikla, Naziv] = Object.values(obj);
                     $("#SifraArtikla").append(`<option value="${ID_Artikla}">${SifraArtikla} - ${Naziv}</option>`)
