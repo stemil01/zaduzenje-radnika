@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../node_modules/bootstrap-select/dist/css/bootstrap-select.min.css">
+        <!-- <script defer>require('popper.js')</script> -->
+        <script defer>require('bootstrap')</script>
+        <script defer>require('bootstrap-select')</script>
         <%- include('partials/head') %>
     </head>
     <body>
@@ -14,7 +19,7 @@
             <option value="Cena">Ceni</option>
         </select>
 
-        <table id="listaArtikala"></table>
+        <table class="content-table" id="listaArtikala"></table>
 
         <button type="button" onclick="openWin_Artikl()">Dodaj artkl</button>
         <form id="editForm"></form>

@@ -622,6 +622,43 @@ app.on('ready', () => {
         });
     });
 
+    // ZADUZENJE PO RADNIKU
+    ipcMain.on("list-Radnik-Zaduzenje", (evt, PrezimeIme) => {
+        database.db.get(`
+            SELECT ID_Radnika
+            FROM Radnik
+            WHERE PrezimeIme=?
+        `, PrezimeIme, (err, row) => {
+            if (err) {
+                throw err;
+            }
+            let [ID_Radnika] = Object.values(row);
+            database.db.all(`
+                SELECT '', A.SifraArtikla, A.Naziv, A.JedinicaMere, ZR.Kolicina, A.Cena*ZR.Kolicina [Vrednost]
+                FROM Artikl A, ZaduzenjePoRadniku ZR
+                WHERE A.ID_Artikla=ZR.ID_Artikla AND ZR.ID_Radnika=? AND ZR.Kolicina>0
+            `, ID_Radnika, (err, rows) => {
+                if (err) {
+                    throw err;
+                }
+                win.webContents.send("Radnik-Zaduzenje", rows);
+            });
+        });
+    });
+
+    ipcMain.on("req-ukupno-zaduzenje", (evt, ID_Radnika) => {
+        database.db.get(`
+            SELECT SUM(A.Cena*ZR.Kolicina)
+            FROM Artikl A, ZaduzenjePoRadniku ZR
+            WHERE A.ID_Artikla=ZR.ID_Artikla AND ZR.ID_Radnika=?
+        `, ID_Radnika, (err, row) => {
+            if (err) {
+                throw err;
+            }
+            win.webContents.send("res-ukupno-zaduzenje", Object.values(row)[0]);
+        });
+    });
+
     // ipcMain.on("req-Radnik-zaArtikl", (event, ID_Artikla) => {
     //     database.db.all(`
     //         SELECT DISTINCT R.ID_Radnika, R.PrezimeIme

@@ -1,0 +1,113 @@
+/* TABELA */
+.content-table {
+    border-collapse: collapse;
+    margin: 25px 0;
+    min-width: 600px;
+    width: 70%;
+    border-radius: 5px 5px 0 0;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.content-table thead tr {
+    background-color: #009879;
+    color: #ffffff;
+    text-align: left;
+    font-weight: bold;
+}
+
+.content-table th, .content-table td {
+    padding: 5px 5px;
+}
+
+.content-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+* {
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    text-decoration: none;
+}
+
+/* NAVIGACIJA */
+header li, header a, header button {
+    font-weight: 500;
+    font-size: 16px;
+    color: #ffffff;
+}
+
+.img-home-button {
+    width: 30px;
+}
+
+.home-page {
+    margin-right: auto;
+    cursor: pointer;
+}
+
+header {
+    background-color: #3b7a42;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 20px 5%;
+}
+
+.nav-links {
+    list-style: none;
+}
+
+.nav-links li {
+    display: inline;
+    padding: 0 15px;
+}
+
+.nav-links li a {
+    transition: all 0.3s ease 0s;
+}
+
+.nav-links li a:hover {
+    color: #009879;
+}
+
+/* POCETNA STRANA */
+h1 {
+    color: #ffffff;
+}
+
+.home-page-bar {
+    background-color: #3b7a42;
+    text-align: center;
+    padding: 30px;
+}
+
+.main-page-nav {
+    padding: 20px;
+    text-align: center;
+}
+
+.main-page-nav ul {
+    list-style: none;
+}
+
+.main-page-nav ul li a {
+    transition: all 0.3s ease 0s;
+}
+
+.main-page-nav ul li a:hover {
+    color: #009879;
+}
+
+/* NESTO RANDOM */
+#searchInput {
+    margin: 10px;
+}
+
+.headerCell {
+    transition: all 0.3s ease 0s;
+}
+
+.headerCell:hover {
+    color: #3b7a42;
+    cursor: pointer;
+}

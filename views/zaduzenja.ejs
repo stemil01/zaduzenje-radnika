@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <%- include('partials/head') %>
         <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
         <link rel="stylesheet" href="../node_modules/bootstrap-select/dist/css/bootstrap-select.min.css">
-        <script defer>require('popper.js')</script>
+        <!-- <script defer>require('popper.js')</script> -->
         <script defer>require('bootstrap')</script>
         <script defer>require('bootstrap-select')</script>
+        <%- include('partials/head') %>
     </head>
     <body>
         <%- include('partials/navigation') %>
@@ -21,7 +21,7 @@
             <option value="Datum">Datumu</option>
         </select>
 
-        <table id="listaZaduzenja"></table>
+        <table class="content-table" id="listaZaduzenja"></table>
 
         <button type="button" onclick="openWin_Zaduznje()">Novo zaduzenje</button>
         <script src="../src/renderer.js"></script>

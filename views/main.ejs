@@ -1,20 +1,30 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../node_modules/bootstrap-select/dist/css/bootstrap-select.min.css">
+        <!-- <script defer>require('popper.js')</script> -->
+        <script defer>require('bootstrap')</script>
+        <script defer>require('bootstrap-select')</script>
         <%- include('partials/head') %>
     </head>
     <body>
-        <h1>Pocetna strana</h1>
+        <div class="home-page-bar">
+            <h1>Pocetna strana</h1>
+        </div>
 
-        <ul>
-            <li><a href="artikli.ejs">Artikli</a></li>
-            <li><a href="radnici.ejs">Radnici</a></li>
-            <li><a href="ulaz.ejs">Ulaz</a></li>
-            <li><a href="skladiste.ejs">Stanje skladista</a></li>
-            <li><a href="zaduzenja.ejs">Zaduzenja</a></li>
-            <li><a href="razduzenja.ejs">Razduzenja</a></li>
-            <li><a href="dnevnik.ejs">Dnevnik transakcija</a></li>
-        </ul>
+        <div class="main-page-nav">
+            <nav>
+                <ul>
+                    <li><a href="artikli.ejs">Artikli</a></li>
+                    <li><a href="radnici.ejs">Radnici</a></li>
+                    <li><a href="ulaz.ejs">Ulaz</a></li>
+                    <li><a href="skladiste.ejs">Stanje skladista</a></li>
+                    <li><a href="zaduzenja.ejs">Zaduzenja</a></li>
+                    <li><a href="razduzenja.ejs">Razduzenja</a></li>
+                </ul>
+            </nav>
+        </div>
 
         <script>
             const { ipcRenderer } = require('electron');

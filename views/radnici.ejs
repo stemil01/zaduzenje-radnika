@@ -1,23 +1,30 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../node_modules/bootstrap-select/dist/css/bootstrap-select.min.css">
+        <!-- <script defer>require('popper.js')</script> -->
+        <script defer>require('bootstrap')</script>
+        <script defer>require('bootstrap-select')</script>
         <%- include('partials/head') %>
     </head>
     <body>
         <%- include('partials/navigation') %>
 
-        <input id="searchInput" placeholder="Pretrazi...">
+        <div class="page">
+            <input id="searchInput" placeholder="Pretrazi...">
 
-        <table id="listaRadnika"></table>
+            <table class="content-table" id="listaRadnika"></table>
 
-        <button type="button" onclick="openWin_Radnik()">Dodaj radnika</button>
+            <button type="button" onclick="openWin_Radnik()">Dodaj radnika</button>
 
+        </div>
         <script src="../src/renderer.js"></script>
         <script>
             const { ipcRenderer } = require('electron');
             const $ = require('jquery');
 
-            let rowsRadnik;
+            let rowsRadnik, rowsRadnikZaduzenje;
             let desc = true;
 
             ipcRenderer.send("list-Radnik");
@@ -99,6 +106,7 @@
                 $(document).on("click", ".headerCell", function() {
                     let attribute = $(this).text();
                     let key = $("#searchInput").val();
+                    console.log($(this).closest("table").attr("id"));
 
                     desc = !desc;
                     createTable("listaRadnika", filterTable(rowsRadnik, attribute, desc, key, 'PrezimeIme'), true);
@@ -114,6 +122,28 @@
                     let key = $("#searchInput").val();
 
                     createTable("listaRadnika", searchTable(rowsRadnik, key, 'PrezimeIme'), true);
+                });
+                
+                $(document).on("click", ".value", function() {
+                    if ($(this).closest("table").attr("id") == "listaRadnika") {
+                        let PrezimeIme = $(this).text(), ID_Radnika = $(this).closest("tr").find("td:first").text();
+                        $(".page").empty();
+
+                        ipcRenderer.send("req-ukupno-zaduzenje", ID_Radnika);
+                        ipcRenderer.once("res-ukupno-zaduzenje", (evt, ukupnoZaduzenje) => {
+                            let pageHTML = `<p>${PrezimeIme}</p>
+                                            <p>Ukupno zaduzenje: ${ukupnoZaduzenje}</p>
+                                            <table class="content-table" id="zaduzenjeRadnika"></table>
+                                            <a href="radnici.ejs">Nazad</a>`;
+                            $(".page").html(pageHTML);
+
+                            ipcRenderer.send("list-Radnik-Zaduzenje", PrezimeIme);
+                            ipcRenderer.once("Radnik-Zaduzenje", (evt, rows) => {
+                                rowsRadnikZaduzenje = rows;
+                                createTable("zaduzenjeRadnika", rowsRadnikZaduzenje, false);
+                            });
+                        });
+                    }
                 });
             });
 
