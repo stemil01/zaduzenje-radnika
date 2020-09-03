@@ -7,7 +7,7 @@ const db = require('./db.js');
 
 app.on('ready', () => {
     const win = new BrowserWindow({
-        width: 1300,
+        width: 1400,
         height: 800,
         webPreferences: {
             nodeIntegration: true,
@@ -801,7 +801,7 @@ app.on('ready', () => {
     ipcMain.on("open-insert-window", (evt, path) => {
         let insertWin = new BrowserWindow({
             width: 600,
-            height: 200,
+            height: 300,
             webPreferences: {
                 nodeIntegration: true,
                 enableRemoteModule: true

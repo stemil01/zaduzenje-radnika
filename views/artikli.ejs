@@ -21,6 +21,16 @@
 
         <table class="content-table" id="listaArtikala"></table>
 
+        <div class="pagination">
+            <div class="firstPage">Prva</div>
+            <div class="prevPage">Prethodna</div>
+            <div class="page-num" id="page1">1</div>
+            <div class="page-num" id="page2">2</div>
+            <div class="page-num" id="page3">3</div>
+            <div class="nextPage">Sledeca</div>
+            <div class="prevPage">Poslednja</div>
+        </div>
+
         <button type="button" onclick="openWin_Artikl()">Dodaj artkl</button>
         <form id="editForm"></form>
 
@@ -31,10 +41,13 @@
 
             let rowsArtikl;
             let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true;
+            let pageSize = 30, currentPage, numberOfPages;
 
             ipcRenderer.send("list-Artikl");
             ipcRenderer.on("rows-Artikl", (evt, rows) => {
                 rowsArtikl = rows;
+                currentPage = 1;
+                numberOfPages = Math.ceil(rowsArtikl.length / pageSize);
                 createTable("listaArtikala", rowsArtikl, true);
             });
 
@@ -173,6 +186,13 @@
                     let searchBy = $("#searchBy").val();
 
                     createTable("listaArtikala", searchTable(rowsArtikl, key, searchBy), true);
+                });
+
+                // pagination
+                $(document).on("click", ".page-num", function() {
+                    currentPage = parseInt($(this).text());
+                    createTable()
+                    updatePagination(currentPage, numberOfPages);
                 });
             });
 

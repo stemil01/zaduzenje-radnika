@@ -49,6 +49,31 @@ function createTable(tableID, data, buttons) {
     }
 }
 
+function updatePagination(currentPage, numberOfPages) {
+    let leftCursor = currentPage - 1, rightCursor = currentPage + 1;
+    let paginationNumber = 1;
+    let pages = [currentPage];
+    while ((leftCursor > 0 || rightCursor <= numberOfPages) && paginationNumber < 3) {
+        if (leftCursor > 0) {
+            pages.unshift(leftCursor);
+            leftCursor--;
+            paginationNumber++;
+        }
+        if (rightCursor <= numberOfPages) {
+            pages.push(rightCursor);
+            rightCursor++;
+            paginationNumber++;
+        }
+    }
+    $("#page1").css("display", "none");
+    $("#page2").css("display", "none");
+    $("#page3").css("display", "none");
+    for (let i = 0; i < pages.length; i++) {
+        $(`#page${i + 1}`).css("display", "");
+        $(`#page${i + 1}`).html(pages[i]);
+    }
+}
+
 function debounce(fn, delay) {
     let timeout;
     return function(...args) {
