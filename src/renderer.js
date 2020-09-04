@@ -1,9 +1,13 @@
-function createTable(tableID, data, buttons) {
+let pageSize = 3;
+
+function createTable(tableID, data, buttons, currentPage) {
     let table = document.getElementById(tableID);
     table.innerHTML = '';
 
     if (data.length > 0) {
         // creating table header
+        data = data.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
         let thead = table.createTHead();
         let headerData = Object.keys(data[0]);
         headerHTML = '<tr>';
@@ -69,8 +73,22 @@ function updatePagination(currentPage, numberOfPages) {
     $("#page2").css("display", "none");
     $("#page3").css("display", "none");
     for (let i = 0; i < pages.length; i++) {
-        $(`#page${i + 1}`).css("display", "");
+        $(`#page${i + 1}`).removeAttr("style");
         $(`#page${i + 1}`).html(pages[i]);
+        if (pages[i] == currentPage) {
+            $(`#page${i + 1}`).css("color", "#3b7a42");
+        }
+    }
+
+    $(".prevPage").removeAttr("style");
+    $(".nextPage").removeAttr("style");
+    if (currentPage == 1) {
+        $(".prevPage").css("color", "#808080");
+        $(".prevPage").css("cursor", "default");
+    }
+    if (currentPage == numberOfPages) {
+        $(".nextPage").css("color", "#808080");
+        $(".nextPage").css("cursor", "default");
     }
 }
 
