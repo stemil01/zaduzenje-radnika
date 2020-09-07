@@ -23,6 +23,17 @@
 
         <table class="content-table" id="listaZaduzenja"></table>
 
+        <div class="pagination">
+            <div class="firstPage">Prva</div>
+            <div class="prevPage">Prethodna</div>
+            <div class="page-num" id="page1"></div>
+            <div class="page-num" id="page2"></div>
+            <div class="page-num" id="page3"></div>
+            <div class="nextPage">Sledeca</div>
+            <div class="lastPage">Poslednja</div>
+        </div>
+
+
         <button type="button" onclick="openWin_Zaduznje()">Novo zaduzenje</button>
         <script src="../src/renderer.js"></script>
         <script>
@@ -31,11 +42,16 @@
 
             let rowsZaduzenje;
             let descPrezimeIme = true, descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descKolicina = true, descDatum = true;
+            let tableContent, currentPage, numberOfPages;
             
             ipcRenderer.send("list-Zaduzenje");
-            ipcRenderer.on("rows-Zaduzenje", (evt, rows) => {
-                rowsZaduzenje = rows;
-                createTable("listaZaduzenja", rowsZaduzenje, true);
+            ipcRenderer.once("rows-Zaduzenje", (evt, rows) => {
+                rowsZaduzenje = rows.slice();
+                tableContent = rowsZaduzenje.slice();
+                currentPage = 1;
+                numberOfPages = Math.ceil(tableContent.length / pageSize);
+                createTable("listaZaduzenja", rowsZaduzenje, true, currentPage);
+                updatePagination(currentPage, numberOfPages);
             });
 
             function openWin_Zaduznje() {
@@ -49,12 +65,19 @@
                     
                     ipcRenderer.send("delete-Zaduzenje", ID_Zaduzenja);
                     ipcRenderer.once("deletedRow", () => {
-                        $row.remove();
-
-                        let index = rowsZaduzenje.findIndex((element) => {
+                        let rowsIndex = rowsZaduzenje.findIndex((element) => {
                             return element.ID_Zaduzenja == ID_Zaduzenja;
                         });
-                        rowsZaduzenje.splice(index, 1);
+                        rowsZaduzenje.splice(rowsIndex, 1);
+                        let tableIndex = tableContent.findIndex((element) => {
+                            return element.ID_Zaduzenja == ID_Zaduzenja;
+                        });
+                        tableContent.splice(tableIndex, 1);
+                        
+                        numberOfPages = Math.ceil(tableContent.length / pageSize);
+                        if (currentPage > numberOfPages) currentPage--;
+                        createTable("listaZaduzenja", tableContent, true, currentPage);
+                        updatePagination(currentPage, numberOfPages);
                     });
                 });
 
@@ -178,31 +201,73 @@
                             break;
                     }
 
-                    createTable("listaZaduzenja", filterTable(rowsZaduzenje, attribute, desc, key, searchBy), true);
+                    currentPage = 1;
+                    tableContent = filterTable(rowsZaduzenje, attribute, desc, key, searchBy);
+                    numberOfPages = Math.ceil(tableContent.length / pageSize);
+                    createTable("listaZaduzenja", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("change keyup paste", "#searchInput", debounce(() => {
                     let key = $("#searchInput").val();
                     let searchBy = $("#searchBy").val();
 
-                    createTable("listaZaduzenja", searchTable(rowsZaduzenje, key, searchBy), true);
+                    currentPage = 1;
+                    tableContent = searchTable(rowsZaduzenje, key, searchBy);
+                    numberOfPages = Math.ceil(tableContent.length / pageSize);
+                    createTable("listaZaduzenja", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
                 }, 350));
 
                 $(document).on("change", "#searchBy", function() {
                     let key = $("#searchInput").val();
                     let searchBy = $("#searchBy").val();
 
-                    createTable("listaZaduzenja", searchTable(rowsZaduzenje, key, searchBy), true);
+                    currentPage = 1;
+                    tableContent = searchTable(rowsZaduzenje, key, searchBy);
+                    numberOfPages = Math.ceil(tableContent.length / pageSize);
+                    createTable("listaZaduzenja", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
                 });
 
+                // pagination
+                $(document).on("click", ".page-num", function() {
+                    currentPage = parseInt($(this).text());
+                    createTable("listaZaduzenja", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
+                });
+
+                $(document).on("click", ".prevPage", function() {
+                    currentPage--;
+                    createTable("listaZaduzenja", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
+                });
+                
+                $(document).on("click", ".nextPage", function() {
+                    currentPage++;
+                    createTable("listaZaduzenja", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
+                });
+
+                $(document).on("click", ".firstPage", function() {
+                    currentPage = 1;
+                    createTable("listaZaduzenja", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
+                });
+
+                $(document).on("click", ".lastPage", function() {
+                    currentPage = Math.max(numberOfPages, 1);
+                    createTable("listaZaduzenja", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
+                });
             });
 
             function confirmEdit(btn, prev_PrezimeIme, prev_SifraArtikla, prev_Kolicina) {
                 let $row = $(btn).closest("tr");
                 let ID_Zaduzenja = $row.find("#ID_Zaduzenja").text();
                 let PrezimeIme = $row.find("#PrezimeIme").val();
-                let SifraArtikla = $row.find("#SifraArtikla").val(), Naziv = $row.find("#Naziv").attr("placeholder"), JedinicaMere = $row.find("#JedinicaMere").attr("placeholder");
-                let Kolicina = $row.find("#Kolicina").val(), Datum = $row.find("#Datum").val();
+                let SifraArtikla = parseInt($row.find("#SifraArtikla").val()), Naziv = $row.find("#Naziv").attr("placeholder"), JedinicaMere = $row.find("#JedinicaMere").attr("placeholder");
+                let Kolicina = parseInt($row.find("#Kolicina").val()), Datum = $row.find("#Datum").val();
                 let formatDatum = Datum.substr(8, 2) + '.' + Datum.substr(5, 2) + '.' + Datum.substr(0, 4) + '.';
 
                 ipcRenderer.send("edit-Zaduzenje", ID_Zaduzenja, prev_PrezimeIme, prev_SifraArtikla, prev_Kolicina, PrezimeIme, SifraArtikla, Kolicina, Datum);
@@ -219,10 +284,22 @@
 
                     $row.html(rowHMTL);
 
-                    let index = rowsZaduzenje.findIndex((element) => {
+                    let rowsIndex = rowsZaduzenje.findIndex((element) => {
                         return element.ID_Zaduzenja == ID_Zaduzenja;
                     });
-                    rowsZaduzenje[index] = {
+                    rowsZaduzenje[rowsIndex] = {
+                        ID_Zaduzenja: ID_Zaduzenja,
+                        PrezimeIme: PrezimeIme,
+                        SifraArtikla: SifraArtikla,
+                        Naziv: Naziv,
+                        JedinicaMere: JedinicaMere,
+                        Kolicina: Kolicina,
+                        Datum: Datum
+                    };
+                    let tableIndex = tableContent.findIndex((element) => {
+                        return element.ID_Zaduzenja == ID_Zaduzenja;
+                    });
+                    tableContent[tableIndex] = {
                         ID_Zaduzenja: ID_Zaduzenja,
                         PrezimeIme: PrezimeIme,
                         SifraArtikla: SifraArtikla,
@@ -232,7 +309,6 @@
                         Datum: Datum
                     };
                 });
-                
             }
 
             function cancelEdit(btn, ID_Zaduzenja, PrezimeIme, SifraArtikla, Naziv, JedinicaMere, Kolicina, Datum) {

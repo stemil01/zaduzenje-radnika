@@ -85,10 +85,12 @@ function updatePagination(currentPage, numberOfPages) {
     if (currentPage == 1) {
         $(".prevPage").css("color", "#808080");
         $(".prevPage").css("cursor", "default");
+        $(".prevPage").css("pointer-events", "none");
     }
-    if (currentPage == numberOfPages) {
+    if (currentPage >= numberOfPages) {
         $(".nextPage").css("color", "#808080");
         $(".nextPage").css("cursor", "default");
+        $(".nextPage").css("pointer-events", "none");
     }
 }
 

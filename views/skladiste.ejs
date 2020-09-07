@@ -23,6 +23,16 @@
 
         <table class="content-table" id="listaSkladista"></table>
 
+        <div class="pagination">
+            <div class="firstPage">Prva</div>
+            <div class="prevPage">Prethodna</div>
+            <div class="page-num" id="page1"></div>
+            <div class="page-num" id="page2"></div>
+            <div class="page-num" id="page3"></div>
+            <div class="nextPage">Sledeca</div>
+            <div class="lastPage">Poslednja</div>
+        </div>
+
         <form id="editForm"></form>
 
         <script src="../src/renderer.js"></script>
@@ -32,11 +42,16 @@
 
             let rowsSkladiste;
             let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true, descUkupnaKolicina = true, descVrednost = true;
+            let tableContent, currentPage, numberOfPages;
 
             ipcRenderer.send("list-Skladiste");
-            ipcRenderer.on("rows-Skladiste", (evt, rows) => {
-                rowsSkladiste = rows;
-                createTable("listaSkladista", rowsSkladiste, false);
+            ipcRenderer.once("rows-Skladiste", (evt, rows) => {
+                rowsSkladiste = rows.slice();
+                tableContent = rowsSkladiste.slice();
+                currentPage = 1;
+                numberOfPages = Math.ceil(tableContent.length / pageSize);
+                createTable("listaSkladista", rowsSkladiste, false, currentPage);
+                updatePagination(currentPage, numberOfPages);
             });
 
             $(document).ready(function() {
@@ -75,21 +90,64 @@
                             break;
                     }
 
-                    createTable("listaSkladista", filterTable(rowsSkladiste, attribute, desc, key, searchBy), false);
+                    currentPage = 1;
+                    tableContent = filterTable(rowsSkladiste, attribute, desc, key, searchBy);
+                    numberOfPages = Math.ceil(tableContent.length / pageSize);
+                    createTable("listaSkladista", tableContent, false, currentPage);
+                    updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("change keyup paste", "#searchInput", debounce(() => {
                     let key = $("#searchInput").val();
                     let searchBy = $("#searchBy").val();
 
-                    createTable("listaSkladista", searchTable(rowsSkladiste, key, searchBy), false);
+                    currentPage = 1;
+                    tableContent = searchTable(rowsSkladiste, key, searchBy);
+                    numberOfPages = Math.ceil(tableContent.length / pageSize);
+                    createTable("listaSkladista", tableContent, false, currentPage);
+                    updatePagination(currentPage, numberOfPages);
                 }, 350));
 
                 $(document).on("change", "#searchBy", function() {
                     let key = $("#searchInput").val();
                     let searchBy = $("#searchBy").val();
 
-                    createTable("listaSkladista", searchTable(rowsSkladiste, key, searchBy), false);
+                    currentPage = 1;
+                    tableContent = searchTable(rowsSkladiste, key, searchBy);
+                    numberOfPages = Math.ceil(tableContent.length / pageSize);
+                    createTable("listaSkladista", tableContent, false, currentPage);
+                    updatePagination(currentPage, numberOfPages);
+                });
+
+                // pagination
+                $(document).on("click", ".page-num", function() {
+                    currentPage = parseInt($(this).text());
+                    createTable("listaSkladista", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
+                });
+
+                $(document).on("click", ".prevPage", function() {
+                    currentPage--;
+                    createTable("listaSkladista", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
+                });
+                
+                $(document).on("click", ".nextPage", function() {
+                    currentPage++;
+                    createTable("listaSkladista", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
+                });
+
+                $(document).on("click", ".firstPage", function() {
+                    currentPage = 1;
+                    createTable("listaSkladista", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
+                });
+
+                $(document).on("click", ".lastPage", function() {
+                    currentPage = Math.max(numberOfPages, 1);
+                    createTable("listaSkladista", tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
                 });
             });
         </script>

@@ -24,9 +24,9 @@
         <div class="pagination">
             <div class="firstPage">Prva</div>
             <div class="prevPage">Prethodna</div>
-            <div class="page-num" id="page1">1</div>
-            <div class="page-num" id="page2">2</div>
-            <div class="page-num" id="page3">3</div>
+            <div class="page-num" id="page1"></div>
+            <div class="page-num" id="page2"></div>
+            <div class="page-num" id="page3"></div>
             <div class="nextPage">Sledeca</div>
             <div class="lastPage">Poslednja</div>
         </div>
@@ -44,13 +44,13 @@
             let tableContent, currentPage, numberOfPages;
 
             ipcRenderer.send("list-Artikl");
-            ipcRenderer.on("rows-Artikl", (evt, rows) => {
-                rowsArtikl = rows;
-                tableContent = rowsArtikl;
+            ipcRenderer.once("rows-Artikl", (evt, rows) => {
+                rowsArtikl = rows.slice();
+                tableContent = rowsArtikl.slice();
                 currentPage = 1;
                 numberOfPages = Math.ceil(tableContent.length / pageSize);
-                updatePagination(currentPage, numberOfPages);
                 createTable("listaArtikala", rowsArtikl, true, currentPage);
+                updatePagination(currentPage, numberOfPages);
             });
 
             function openWin_Artikl() {
@@ -64,12 +64,19 @@
 
                     ipcRenderer.send("delete-Artikl", ID_Artikla);
                     ipcRenderer.once("deletedRow", () => {
-                        $row.remove();
-
-                        let index = rowsArtikl.findIndex((element) => {
+                        let rowsIndex = rowsArtikl.findIndex((element) => {
                             return element.ID_Artikla == ID_Artikla;
                         });
-                        rowsArtikl.splice(index, 1);
+                        rowsArtikl.splice(rowsIndex, 1);
+                        let tableIndex = tableContent.findIndex((element) => {
+                            return element.ID_Artikla == ID_Artikla;
+                        });
+                        tableContent.splice(tableIndex, 1);
+
+                        numberOfPages = Math.ceil(tableContent.length / pageSize);
+                        if (currentPage > numberOfPages) currentPage--;
+                        createTable("listaArtikala", tableContent, true, currentPage);
+                        updatePagination(currentPage, numberOfPages);
                     });
                 });
 
@@ -111,10 +118,10 @@
                     var $row = $(this).closest("tr");
 
                     let ID_Artikla = $row.find("#ID_Artikla").html();
-                    let SifraArtikla = $row.find("#SifraArtikla").val();
+                    let SifraArtikla = parseInt($row.find("#SifraArtikla").val());
                     let Naziv = $row.find("#Naziv").val();
                     let JedinicaMere = $row.find("#JedinicaMere").val();
-                    let Cena = $row.find("#Cena").val();
+                    let Cena = parseInt($row.find("#Cena").val());
 
                     if (SifraArtikla == '' || Naziv == '' || JedinicaMere == '' || Cena == '') {
                         ipcRenderer.send("error", 'Greska pri unosu podataka', 'Vrednosti ne mogu da budu prazne');
@@ -131,10 +138,20 @@
 
                             $row.html(rowHMTL);
 
-                            let index = rowsArtikl.findIndex((element) => {
+                            let rowsIndex = rowsArtikl.findIndex((element) => {
                                 return element.ID_Artikla == ID_Artikla;
                             });
-                            rowsArtikl[index] = {
+                            rowsArtikl[rowsIndex] = {
+                                ID_Artikla: ID_Artikla,
+                                SifraArtikla: SifraArtikla,
+                                Naziv: Naziv,
+                                JedinicaMere: JedinicaMere,
+                                Cena: Cena
+                            };
+                            let tableIndex = tableContent.findIndex((element) => {
+                                return element.ID_Artikla == ID_Artikla;
+                            });
+                            tableContent[tableIndex] = {
                                 ID_Artikla: ID_Artikla,
                                 SifraArtikla: SifraArtikla,
                                 Naziv: Naziv,
@@ -228,7 +245,7 @@
                 });
 
                 $(document).on("click", ".lastPage", function() {
-                    currentPage = numberOfPages;
+                    currentPage = Math.max(numberOfPages, 1);
                     createTable("listaArtikala", tableContent, true, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
