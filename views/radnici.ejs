@@ -35,16 +35,19 @@
             const $ = require('jquery');
 
             let rowsRadnik, rowsRadnikZaduzenje;
-            let desc = true;
+            let descPrezimeIme = true;
+            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descKolicina = true, descVrednost = true;
             let tableContent, currentPage, numberOfPages;
+            let tableID = "listaRadnika", rowsData;
 
             ipcRenderer.send("list-Radnik");
             ipcRenderer.once("rows-Radnik", (evt, rows) => {
                 rowsRadnik = rows.slice();
+                rowsData = rowsRadnik;
                 tableContent = rowsRadnik.slice();
                 currentPage = 1;
                 numberOfPages = Math.ceil(tableContent.length / pageSize)
-                createTable("listaRadnika", rowsRadnik, true, currentPage);
+                createTable(tableID, rowsData, true, currentPage);
                 updatePagination(currentPage, numberOfPages);
             });
 
@@ -71,7 +74,7 @@
 
                         numberOfPages = Math.ceil(tableContent.length / pageSize);
                         if (currentPage > numberOfPages) currentPage--;
-                        createTable("listaRadnika", tableContent, true, currentPage);
+                        createTable(tableID, tableContent, true, currentPage);
                         updatePagination(currentPage, numberOfPages);
                     });
                 });
@@ -135,41 +138,116 @@
                 $(document).on("click", ".headerCell", function() {
                     let attribute = $(this).text();
                     let key = $("#searchInput").val();
-                    console.log($(this).closest("table").attr("id"));
+                    let desc, searchBy;
 
-                    desc = !desc;
-                    createTable("listaRadnika", filterTable(rowsRadnik, attribute, desc, key, 'PrezimeIme'), true);
+                    if (tableID == "listaRadnika") {
+                        searchBy = 'PrezimeIme';
+                        desc = descPrezimeIme;
+                        descPrezimeIme = !descPrezimeIme;
+                    } else {
+                        searchBy = $("#searchBy").val();
+                        switch (attribute) {
+                            case "SifraArtikla":
+                                desc = descSifraArtikla;
+                                descSifraArtikla = !descSifraArtikla;
+                                break;
+                            case "Naziv":
+                                desc = descNaziv;
+                                descNaziv = !descNaziv;
+                                break;
+                            case "JedinicaMere":
+                                desc = descJedinicaMere;
+                                descJedinicaMere = !descJedinicaMere;
+                                break;
+                            case "Kolicina":
+                                desc = descKolicina;
+                                descKolicina = !descKolicina;
+                                break;
+                            case "Vrednost":
+                                desc = descVrednost;
+                                descVrednost = !descVrednost;
+                                break;
+                            default:
+                                console.log('Ne poklapa se ime kolone');
+                                break;
+                        }
+                    }
+
+                    currentPage = 1;
+                    tableContent = filterTable(rowsData, attribute, desc, key, searchBy);
+                    numberOfPages = Math.ceil(tableContent.length / pageSize);
+                    createTable(tableID, tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("change keyup paste", "#searchInput", debounce(() => {
                     let key = $("#searchInput").val();
+                    let searchBy = tableID == "listaRadnika" ? 'PrezimeIme' : $("#searchBy").val();
 
-                    createTable("listaRadnika", searchTable(rowsRadnik, key, 'PrezimeIme'), true);
+                    currentPage = 1;
+                    tableContent = searchTable(rowsData, key, searchBy);
+                    numberOfPages = Math.ceil(tableContent.length / pageSize);
+                    createTable(tableID, tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
                 }, 350));
 
                 $(document).on("change", "#searchBy", function() {
                     let key = $("#searchInput").val();
+                    let searchBy = tableID == "listaRadnika" ? 'PrezimeIme' : $("#searchBy").val();
 
-                    createTable("listaRadnika", searchTable(rowsRadnik, key, 'PrezimeIme'), true);
+                    currentPage = 1;
+                    tableContent = searchTable(rowsData, key, searchBy);
+                    numberOfPages = Math.ceil(tableContent.length / pageSize);
+                    createTable(tableID, tableContent, true, currentPage);
+                    updatePagination(currentPage, numberOfPages);
                 });
                 
                 $(document).on("click", ".value", function() {
                     if ($(this).closest("table").attr("id") == "listaRadnika") {
                         let PrezimeIme = $(this).text(), ID_Radnika = $(this).closest("tr").find("td:first").text();
                         $(".page").empty();
+                        tableID = "zaduzenjeRadnika";
 
                         ipcRenderer.send("req-ukupno-zaduzenje", ID_Radnika);
                         ipcRenderer.once("res-ukupno-zaduzenje", (evt, ukupnoZaduzenje) => {
-                            let pageHTML = `<p>${PrezimeIme}</p>
-                                            <p>Ukupno zaduzenje: ${ukupnoZaduzenje}</p>
-                                            <table class="content-table" id="zaduzenjeRadnika"></table>
-                                            <a href="radnici.ejs">Nazad</a>`;
-                            $(".page").html(pageHTML);
+                            if (!ukupnoZaduzenje) ukupnoZaduzenje = 0;
+                            $(".page").html(`
+                                <p>${PrezimeIme}</p>
+                                <p>Ukupno zaduzenje: ${ukupnoZaduzenje}</p>
+
+                                <input id="searchInput" placeholder="Pretrazi po...">
+                                <select id="searchBy">
+                                    <option value="SifraArtikla">Sifri Artikla</option>
+                                    <option value="Naziv" selected>Nazivu</option>
+                                    <option value="JedinicaMere">Jedinici mere</option>
+                                    <option value="Kolicina">Kolicini</option>
+                                    <option value="Vrednost">Vrednosti</option>
+                                </select>
+
+                                <table class="content-table" id="zaduzenjeRadnika"></table>
+                                
+                                <div class="pagination">
+                                    <div class="firstPage">Prva</div>
+                                    <div class="prevPage">Prethodna</div>
+                                    <div class="page-num" id="page1"></div>
+                                    <div class="page-num" id="page2"></div>
+                                    <div class="page-num" id="page3"></div>
+                                    <div class="nextPage">Sledeca</div>
+                                    <div class="lastPage">Poslednja</div>
+                                </div>
+
+                                <a href="radnici.ejs">Nazad</a>
+                            `);
 
                             ipcRenderer.send("list-Radnik-Zaduzenje", PrezimeIme);
                             ipcRenderer.once("Radnik-Zaduzenje", (evt, rows) => {
-                                rowsRadnikZaduzenje = rows;
-                                createTable("zaduzenjeRadnika", rowsRadnikZaduzenje, false);
+                                rowsRadnikZaduzenje = rows.slice();
+                                rowsData = rowsRadnikZaduzenje;
+                                tableContent = rowsRadnikZaduzenje.slice();
+                                currentPage = 1;
+                                numberOfPages = Math.ceil(tableContent.length / pageSize);
+                                createTable(tableID, rowsRadnikZaduzenje, false, currentPage);
+                                updatePagination(currentPage, numberOfPages);
                             });
                         });
                     }
@@ -178,31 +256,31 @@
                 // pagination
                 $(document).on("click", ".page-num", function() {
                     currentPage = parseInt($(this).text());
-                    createTable("listaArtikala", tableContent, true, currentPage);
+                    createTable(tableID, tableContent, true, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("click", ".prevPage", function() {
                     currentPage--;
-                    createTable("listaArtikala", tableContent, true, currentPage);
+                    createTable(tableID, tableContent, true, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
                 
                 $(document).on("click", ".nextPage", function() {
                     currentPage++;
-                    createTable("listaArtikala", tableContent, true, currentPage);
+                    createTable(tableID, tableContent, true, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("click", ".firstPage", function() {
                     currentPage = 1;
-                    createTable("listaArtikala", tableContent, true, currentPage);
+                    createTable(tableID, tableContent, true, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("click", ".lastPage", function() {
                     currentPage = Math.max(numberOfPages, 1);
-                    createTable("listaArtikala", tableContent, true, currentPage);
+                    createTable(tableID, tableContent, true, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
             });
