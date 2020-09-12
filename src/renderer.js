@@ -20,7 +20,7 @@ function createTable(tableID, data, buttons, currentPage) {
                 headerHTML += `<th class="headerCell">${key}</th>`;
             }
         }
-        headerHTML += '<th></th><th></th>';
+        if (buttons) headerHTML += '<th></th><th></th>';
         headerHTML += '</tr>';
         thead.innerHTML = headerHTML;
         table.appendChild(thead);

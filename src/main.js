@@ -40,21 +40,14 @@ app.on('ready', () => {
     });
 
     ipcMain.on("delete-Artikl", (evt, ID_Artikla) => {
-        let options = {
-            buttons: ["Da", "Ne"],
-            message: "Da ste sigurni da zelite da obrisete?"
-        };
-        let response = dialog.showMessageBoxSync(options);
-        if (response == 0) {
-            database.db.run(`DELETE FROM Artikl
-                            WHERE ID_Artikla=?`, ID_Artikla, (err) => {
-                                if (err) {
-                                    throw err;
-                                } else {
-                                    win.webContents.send("deletedRow");
-                                }
-                            });
-        }
+        database.db.run(`DELETE FROM Artikl
+                        WHERE ID_Artikla=?`, ID_Artikla, (err) => {
+                            if (err) {
+                                throw err;
+                            } else {
+                                win.webContents.send("deletedRow");
+                            }
+                        });
     });
 
     ipcMain.on("edit-Artikl", (evt, ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena) => {
@@ -117,21 +110,14 @@ app.on('ready', () => {
     });
 
     ipcMain.on("delete-Radnik", (evt, ID_Radnika) => {
-        let options = {
-            buttons: ["Da", "Ne"],
-            message: "Da ste sigurni da zelite da obrisete?"
-        };
-        let response = dialog.showMessageBoxSync(options);
-        if (response == 0) {
-            database.db.run(`DELETE FROM Radnik
-                            WHERE ID_Radnika=?`, ID_Radnika, (err) => {
-                                if (err) {
-                                    throw err;
-                                } else {
-                                    win.webContents.send("deletedRow");
-                                }
-                            });
-        }
+        database.db.run(`DELETE FROM Radnik
+                        WHERE ID_Radnika=?`, ID_Radnika, (err) => {
+                            if (err) {
+                                throw err;
+                            } else {
+                                win.webContents.send("deletedRow");
+                            }
+                        });
     });
 
     ipcMain.on("edit-Radnik", (evt, ID_Radnika, PrezimeIme) => {
@@ -231,36 +217,29 @@ app.on('ready', () => {
     });
 
     ipcMain.on("delete-Ulaz", (evt, ID_Ulaza) => {
-        let options = {
-            buttons: ["Da", "Ne"],
-            message: "Da ste sigurni da zelite da obrisete?"
-        };
-        let response = dialog.showMessageBoxSync(options);
-        if (response == 0) {
-            database.db.run(`UPDATE Artikl
-                            SET UkupnaKolicina=UkupnaKolicina - (
-                                SELECT Kolicina
-                                FROM Ulaz
-                                WHERE ID_Ulaza=?
-                            )
-                            WHERE ID_Artikla=(
-                                SELECT ID_Artikla
-                                FROM Ulaz
-                                WHERE ID_Ulaza=?
-                            )`, [ID_Ulaza, ID_Ulaza], (err) => {
-                                if (err) {
-                                    throw err;
-                                } else {
-                                    database.db.run(`DELETE FROM Ulaz
-                                                    WHERE ID_Ulaza=?`, ID_Ulaza, (err) => {
-                                                        if (err) {
-                                                            throw err;
-                                                        }
-                                                        win.webContents.send("deletedRow");
-                                                    });
-                                }
-                            });
-        }
+        database.db.run(`UPDATE Artikl
+                        SET UkupnaKolicina=ROUND(UkupnaKolicina - (
+                            SELECT Kolicina
+                            FROM Ulaz
+                            WHERE ID_Ulaza=?
+                        ), 3)
+                        WHERE ID_Artikla=(
+                            SELECT ID_Artikla
+                            FROM Ulaz
+                            WHERE ID_Ulaza=?
+                        )`, [ID_Ulaza, ID_Ulaza], (err) => {
+                            if (err) {
+                                throw err;
+                            } else {
+                                database.db.run(`DELETE FROM Ulaz
+                                                WHERE ID_Ulaza=?`, ID_Ulaza, (err) => {
+                                                    if (err) {
+                                                        throw err;
+                                                    }
+                                                    win.webContents.send("deletedRow");
+                                                });
+                            }
+                        });
     });
 
     ipcMain.on("req-Naziv-JedinicaMere", (evt, SifraArtikla) => {
@@ -276,14 +255,14 @@ app.on('ready', () => {
 
     ipcMain.on("edit-Ulaz", (evt, ID_Ulaza, prev_SifraArtikla, SifraArtikla, prev_Kolicina, Kolicina, Datum) => {
         database.db.run(`UPDATE Artikl
-                        SET UkupnaKolicina=UkupnaKolicina - ?
-                        WHERE SifraArtikla=?`, [prev_Kolicina, prev_SifraArtikla], (err) => {
+                        SET UkupnaKolicina=ROUND(UkupnaKolicina + ?, 3)
+                        WHERE SifraArtikla=?`, [Kolicina, SifraArtikla], (err) => {
                             if (err) {
                                 throw err;
                             } else {
                                 database.db.run(`UPDATE Artikl
-                                                SET UkupnaKolicina=UkupnaKolicina + ?
-                                                WHERE SifraArtikla=?`, [Kolicina, SifraArtikla], (err) => {
+                                                SET UkupnaKolicina=ROUND(UkupnaKolicina - ?, 3)
+                                                WHERE SifraArtikla=?`, [prev_Kolicina, prev_SifraArtikla], (err) => {
                                                     if (err) {
                                                         dialog.showErrorBox("Greska pri unosu podataka marko", err.message);
                                                     } else {
@@ -329,8 +308,10 @@ app.on('ready', () => {
 
     // SKLADISTE
     ipcMain.on("list-Skladiste", () => {
-        database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena, UkupnaKolicina, Cena*UkupnaKolicina Vrednost
-            FROM Artikl`, (err, rows) => {
+        database.db.all(`
+            SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena, UkupnaKolicina, ROUND(Cena*UkupnaKolicina, 3) Vrednost
+            FROM Artikl
+            `, (err, rows) => {
                 if (err) {
                     throw err;
                 }
@@ -401,7 +382,7 @@ app.on('ready', () => {
 
     ipcMain.on("insert-Zaduzenje", (evt, ID_Radnika, ID_Artikla, Kolicina, Datum) => {
         database.db.run(`UPDATE Artikl
-                        SET UkupnaKolicina=UkupnaKolicina-?
+                        SET UkupnaKolicina=ROUND(UkupnaKolicina-?, 3)
                         WHERE ID_Artikla=?`, [Kolicina, ID_Artikla], (err) => {
                             if (err) {
                                 dialog.showErrorBox('Greska pri unosu podataka', err.message);
@@ -451,7 +432,7 @@ app.on('ready', () => {
                         ID_Artikla = Object.values(rows)[0];
                         database.db.run(`
                             UPDATE Artikl
-                            SET UkupnaKolicina=UkupnaKolicina+?
+                            SET UkupnaKolicina=ROUND(UkupnaKolicina+?, 3)
                             WHERE SifraArtikla=?
                         `, [prev_Kolicina, prev_SifraArtikla], (err) => {
                             if (err) {
@@ -459,7 +440,7 @@ app.on('ready', () => {
                             } else {
                                 database.db.run(`
                                     UPDATE ZaduzenjePoRadniku
-                                    SET Kolicina=Kolicina-?
+                                    SET Kolicina=ROUND(Kolicina-?, 3)
                                     WHERE ID_Radnika=? AND ID_Artikla=?
                                 `, [prev_Kolicina, prev_ID_Radnika, prev_ID_Artikla], (err) => {
                                     if (err) {
@@ -467,7 +448,7 @@ app.on('ready', () => {
                                     } else {
                                         database.db.run(`
                                             UPDATE Artikl
-                                            SET UkupnaKolicina=UkupnaKolicina-?
+                                            SET UkupnaKolicina=ROUND(UkupnaKolicina-?, 3)
                                             WHERE SifraArtikla=?
                                         `, [Kolicina, SifraArtikla], (err) => {
                                             if (err) {
@@ -477,7 +458,7 @@ app.on('ready', () => {
                                                     INSERT INTO ZaduzenjePoRadniku(ID_Radnika, ID_Artikla, Kolicina)
                                                     VALUES(?, ?, ?)
                                                     ON CONFLICT(ID_Radnika, ID_Artikla)
-                                                    DO UPDATE SET Kolicina=Kolicina+?
+                                                    DO UPDATE SET Kolicina=ROUND(Kolicina+?, 3)
                                                 `, [ID_Radnika, ID_Artikla, Kolicina, Kolicina], (err) => {
                                                     if (err) { 
                                                         dialog.showErrorBox('Greska pri unosu podataka', err.message);
@@ -521,52 +502,45 @@ app.on('ready', () => {
     });
 
     ipcMain.on("delete-Zaduzenje", (evt, ID_Zaduzenja) => {
-        let options = {
-            buttons: ["Da", "Ne"],
-            message: "Da ste sigurni da zelite da obrisete?"
-        };
-        let response = dialog.showMessageBoxSync(options);
-        if (response == 0) {
-            let ID_Radnika, ID_Artikla, Kolicina;
-            database.db.get(`
-                SELECT ID_Radnika, ID_Artikla, Kolicina
-                FROM Zaduzenje
-                WHERE ID_Zaduzenja=?
-            `, ID_Zaduzenja, (err, row) => {
+        let ID_Radnika, ID_Artikla, Kolicina;
+        database.db.get(`
+            SELECT ID_Radnika, ID_Artikla, Kolicina
+            FROM Zaduzenje
+            WHERE ID_Zaduzenja=?
+        `, ID_Zaduzenja, (err, row) => {
+            if (err) {
+                throw err;
+            }
+            [ID_Radnika, ID_Artikla, Kolicina] = Object.values(row);
+                
+            database.db.run(`
+                UPDATE Artikl
+                SET UkupnaKolicina=ROUND(UkupnaKolicina+?, 3)
+                WHERE ID_Artikla=?
+            `, [Kolicina, ID_Artikla], (err) => {
                 if (err) {
                     throw err;
                 }
-                [ID_Radnika, ID_Artikla, Kolicina] = Object.values(row);
-                    
                 database.db.run(`
-                    UPDATE Artikl
-                    SET UkupnaKolicina=UkupnaKolicina+?
-                    WHERE ID_Artikla=?
-                `, [Kolicina, ID_Artikla], (err) => {
+                    UPDATE ZaduzenjePoRadniku
+                    SET Kolicina=ROUND(Kolicina-?, 3)
+                    WHERE ID_Radnika=? AND ID_Artikla=?
+                `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
                     if (err) {
                         throw err;
                     }
                     database.db.run(`
-                        UPDATE ZaduzenjePoRadniku
-                        SET Kolicina=Kolicina-?
-                        WHERE ID_Radnika=? AND ID_Artikla=?
-                    `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
+                        DELETE FROM Zaduzenje
+                        WHERE ID_Zaduzenja=?
+                    `, ID_Zaduzenja, (err) => {
                         if (err) {
                             throw err;
                         }
-                        database.db.run(`
-                            DELETE FROM Zaduzenje
-                            WHERE ID_Zaduzenja=?
-                        `, ID_Zaduzenja, (err) => {
-                            if (err) {
-                                throw err;
-                            }
-                            win.webContents.send("deletedRow");
-                        });
+                        win.webContents.send("deletedRow");
                     });
                 });
             });
-        }
+        });
     });
 
     // RAZDUZENJE
@@ -634,7 +608,7 @@ app.on('ready', () => {
             }
             let [ID_Radnika] = Object.values(row);
             database.db.all(`
-                SELECT '', A.SifraArtikla, A.Naziv, A.JedinicaMere, ZR.Kolicina, A.Cena*ZR.Kolicina [Vrednost]
+                SELECT '', A.SifraArtikla, A.Naziv, A.JedinicaMere, ZR.Kolicina, ROUND(A.Cena*ZR.Kolicina, 3) [Vrednost]
                 FROM Artikl A, ZaduzenjePoRadniku ZR
                 WHERE A.ID_Artikla=ZR.ID_Artikla AND ZR.ID_Radnika=? AND ZR.Kolicina>0
             `, ID_Radnika, (err, rows) => {
@@ -648,7 +622,7 @@ app.on('ready', () => {
 
     ipcMain.on("req-ukupno-zaduzenje", (evt, ID_Radnika) => {
         database.db.get(`
-            SELECT SUM(A.Cena*ZR.Kolicina)
+            SELECT ROUND(SUM(ROUND(A.Cena*ZR.Kolicina, 3)), 3)
             FROM Artikl A, ZaduzenjePoRadniku ZR
             WHERE A.ID_Artikla=ZR.ID_Artikla AND ZR.ID_Radnika=?
         `, ID_Radnika, (err, row) => {
@@ -675,7 +649,7 @@ app.on('ready', () => {
     ipcMain.on("insert-Razduzenje", (evt, ID_Radnika, ID_Artikla, Kolicina, Datum) => {
         database.db.run(`
             UPDATE ZaduzenjePoRadniku
-            SET Kolicina=Kolicina-?
+            SET Kolicina=ROUND(Kolicina-?, 3)
             WHERE ID_Radnika=? AND ID_Artikla=?
         `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
             if (err) {
@@ -728,7 +702,7 @@ app.on('ready', () => {
     ipcMain.on("edit-Razduzenje", (evt, ID_Razduzenja, prev_ID_Radnika, prev_ID_Artikla, prev_Kolicina, ID_Radnika, ID_Artikla, Kolicina, Datum) => {
         database.db.run(`
             UPDATE ZaduzenjePoRadniku
-            SET Kolicina=Kolicina+?
+            SET Kolicina=ROUND(Kolicina+?, 3)
             WHERE ID_Radnika=? AND ID_Artikla=?
         `, [prev_Kolicina, prev_ID_Radnika, prev_ID_Artikla], (err) => {
             if (err) {
@@ -736,7 +710,7 @@ app.on('ready', () => {
             } else {
                 database.db.run(`
                     UPDATE ZaduzenjePoRadniku
-                    SET Kolicina=Kolicina-?
+                    SET Kolicina=ROUND(Kolicina-?, 3)
                     WHERE ID_Radnika=? AND ID_Artikla=?
                 `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
                     if (err) {
@@ -760,41 +734,34 @@ app.on('ready', () => {
     });
 
     ipcMain.on("delete-Razduzenje", (evt, ID_Razduzenja) => {
-        let options = {
-            buttons: ["Da", "Ne"],
-            message: "Da ste sigurni da zelite da obrisete?"
-        };
-        let response = dialog.showMessageBoxSync(options);
-        if (response == 0) {
-            database.db.get(`
-                SELECT ID_Radnika, ID_Artikla, Kolicina
-                FROM Razduzenje
-                WHERE ID_Razduzenja=?
-            `, ID_Razduzenja, (err, row) => {
+        database.db.get(`
+            SELECT ID_Radnika, ID_Artikla, Kolicina
+            FROM Razduzenje
+            WHERE ID_Razduzenja=?
+        `, ID_Razduzenja, (err, row) => {
+            if (err) {
+                throw err;
+            }
+            let [ID_Radnika, ID_Artikla, Kolicina] = Object.values(row);
+            database.db.run(`
+                UPDATE ZaduzenjePoRadniku
+                SET Kolicina=ROUND(Kolicina+?, 3)
+                WHERE ID_Radnika=? AND ID_Artikla=?
+            `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
                 if (err) {
                     throw err;
                 }
-                let [ID_Radnika, ID_Artikla, Kolicina] = Object.values(row);
                 database.db.run(`
-                    UPDATE ZaduzenjePoRadniku
-                    SET Kolicina=Kolicina+?
-                    WHERE ID_Radnika=? AND ID_Artikla=?
-                `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
+                    DELETE FROM Razduzenje
+                    WHERE ID_Razduzenja=?
+                `, ID_Razduzenja, (err) => {
                     if (err) {
                         throw err;
                     }
-                    database.db.run(`
-                        DELETE FROM Razduzenje
-                        WHERE ID_Razduzenja=?
-                    `, ID_Razduzenja, (err) => {
-                        if (err) {
-                            throw err;
-                        }
-                        win.webContents.send("deletedRow");
-                    })
+                    win.webContents.send("deletedRow");
                 })
-            });
-        }
+            })
+        });
     });
 
     // OPSTE

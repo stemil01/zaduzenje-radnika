@@ -32,13 +32,14 @@
         <script src="../src/renderer.js"></script>
         <script>
             const { ipcRenderer } = require('electron');
+            const { dialog } = require('electron').remote;
             const $ = require('jquery');
 
             let rowsRadnik, rowsRadnikZaduzenje;
             let descPrezimeIme = true;
             let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descKolicina = true, descVrednost = true;
             let tableContent, currentPage, numberOfPages;
-            let tableID = "listaRadnika", rowsData;
+            let tableID = "listaRadnika", rowsData, buttons = true;
 
             ipcRenderer.send("list-Radnik");
             ipcRenderer.once("rows-Radnik", (evt, rows) => {
@@ -58,25 +59,32 @@
 
             $(document).ready(function() {
                 $(document).on("click", ".deleteRow", function() {
-                    let $row = $(this).closest("tr");
-                    let ID_Radnika = $row.find("td:first").text();
-                    
-                    ipcRenderer.send("delete-Radnik", ID_Radnika);
-                    ipcRenderer.once("deletedRow", () => {
-                        let rowsIndex = rowsRadnik.findIndex((element) => {
-                            return element.ID_Radnika == ID_Radnika;
-                        });
-                        rowsArtikl.splice(rowsIndex, 1);
-                        let tableIndex = tableContent.findIndex((element) => {
-                            return element.ID_Radnika == ID_Radnika;
-                        });
-                        tableContent.splice(tableIndex, 1);
+                    let options = {
+                        buttons: ["Da", "Ne"],
+                        message: "Da ste sigurni da zelite da obrisete?"
+                    };
+                    let response = dialog.showMessageBoxSync(options);
+                    if (response == 0) {
+                        let $row = $(this).closest("tr");
+                        let ID_Radnika = $row.find("td:first").text();
+                        
+                        ipcRenderer.send("delete-Radnik", ID_Radnika);
+                        ipcRenderer.once("deletedRow", () => {
+                            let rowsIndex = rowsRadnik.findIndex((element) => {
+                                return element.ID_Radnika == ID_Radnika;
+                            });
+                            rowsRadnik.splice(rowsIndex, 1);
+                            let tableIndex = tableContent.findIndex((element) => {
+                                return element.ID_Radnika == ID_Radnika;
+                            });
+                            tableContent.splice(tableIndex, 1);
 
-                        numberOfPages = Math.ceil(tableContent.length / pageSize);
-                        if (currentPage > numberOfPages) currentPage--;
-                        createTable(tableID, tableContent, true, currentPage);
-                        updatePagination(currentPage, numberOfPages);
-                    });
+                            numberOfPages = Math.ceil(tableContent.length / pageSize);
+                            if (currentPage > numberOfPages) currentPage--;
+                            createTable(tableID, tableContent, true, currentPage);
+                            updatePagination(currentPage, numberOfPages);
+                        });
+                    }
                 });
 
                 $(document).on("click", ".editRow", function() {
@@ -102,7 +110,7 @@
                 $(document).on("click", "#confirmEdit", function() {
                     var $row = $(this).closest("tr");
 
-                    let ID_Radnika = $row.find("#ID_Radnika").html();
+                    let ID_Radnika = parseInt($row.find("#ID_Radnika").html());
                     let PrezimeIme = $row.find("#PrezimeIme").val();
 
                     if (PrezimeIme == '') {
@@ -176,7 +184,7 @@
                     currentPage = 1;
                     tableContent = filterTable(rowsData, attribute, desc, key, searchBy);
                     numberOfPages = Math.ceil(tableContent.length / pageSize);
-                    createTable(tableID, tableContent, true, currentPage);
+                    createTable(tableID, tableContent, buttons, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
 
@@ -187,7 +195,7 @@
                     currentPage = 1;
                     tableContent = searchTable(rowsData, key, searchBy);
                     numberOfPages = Math.ceil(tableContent.length / pageSize);
-                    createTable(tableID, tableContent, true, currentPage);
+                    createTable(tableID, tableContent, buttons, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 }, 350));
 
@@ -198,7 +206,7 @@
                     currentPage = 1;
                     tableContent = searchTable(rowsData, key, searchBy);
                     numberOfPages = Math.ceil(tableContent.length / pageSize);
-                    createTable(tableID, tableContent, true, currentPage);
+                    createTable(tableID, tableContent, buttons, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
                 
@@ -207,6 +215,7 @@
                         let PrezimeIme = $(this).text(), ID_Radnika = $(this).closest("tr").find("td:first").text();
                         $(".page").empty();
                         tableID = "zaduzenjeRadnika";
+                        buttons = false;
 
                         ipcRenderer.send("req-ukupno-zaduzenje", ID_Radnika);
                         ipcRenderer.once("res-ukupno-zaduzenje", (evt, ukupnoZaduzenje) => {
@@ -256,31 +265,31 @@
                 // pagination
                 $(document).on("click", ".page-num", function() {
                     currentPage = parseInt($(this).text());
-                    createTable(tableID, tableContent, true, currentPage);
+                    createTable(tableID, tableContent, buttons, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("click", ".prevPage", function() {
                     currentPage--;
-                    createTable(tableID, tableContent, true, currentPage);
+                    createTable(tableID, tableContent, buttons, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
                 
                 $(document).on("click", ".nextPage", function() {
                     currentPage++;
-                    createTable(tableID, tableContent, true, currentPage);
+                    createTable(tableID, tableContent, buttons, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("click", ".firstPage", function() {
                     currentPage = 1;
-                    createTable(tableID, tableContent, true, currentPage);
+                    createTable(tableID, tableContent, buttons, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("click", ".lastPage", function() {
                     currentPage = Math.max(numberOfPages, 1);
-                    createTable(tableID, tableContent, true, currentPage);
+                    createTable(tableID, tableContent, buttons, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
             });

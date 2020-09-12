@@ -122,31 +122,31 @@
                 // pagination
                 $(document).on("click", ".page-num", function() {
                     currentPage = parseInt($(this).text());
-                    createTable("listaSkladista", tableContent, true, currentPage);
+                    createTable("listaSkladista", tableContent, false, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("click", ".prevPage", function() {
                     currentPage--;
-                    createTable("listaSkladista", tableContent, true, currentPage);
+                    createTable("listaSkladista", tableContent, false, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
                 
                 $(document).on("click", ".nextPage", function() {
                     currentPage++;
-                    createTable("listaSkladista", tableContent, true, currentPage);
+                    createTable("listaSkladista", tableContent, false, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("click", ".firstPage", function() {
                     currentPage = 1;
-                    createTable("listaSkladista", tableContent, true, currentPage);
+                    createTable("listaSkladista", tableContent, false, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
 
                 $(document).on("click", ".lastPage", function() {
                     currentPage = Math.max(numberOfPages, 1);
-                    createTable("listaSkladista", tableContent, true, currentPage);
+                    createTable("listaSkladista", tableContent, false, currentPage);
                     updatePagination(currentPage, numberOfPages);
                 });
             });

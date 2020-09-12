@@ -38,6 +38,7 @@
         <script src="../src/renderer.js"></script>
         <script>
             const { ipcRenderer } = require('electron');
+            const { dialog } = require('electron').remote;
             const $ = require('jquery');
 
             let rowsZaduzenje;
@@ -60,25 +61,32 @@
 
             $(document).ready(function() {
                 $(document).on("click", ".deleteRow", function() {
-                    let $row = $(this).closest("tr");
-                    let ID_Zaduzenja = $row.find("td:first").text();
-                    
-                    ipcRenderer.send("delete-Zaduzenje", ID_Zaduzenja);
-                    ipcRenderer.once("deletedRow", () => {
-                        let rowsIndex = rowsZaduzenje.findIndex((element) => {
-                            return element.ID_Zaduzenja == ID_Zaduzenja;
-                        });
-                        rowsZaduzenje.splice(rowsIndex, 1);
-                        let tableIndex = tableContent.findIndex((element) => {
-                            return element.ID_Zaduzenja == ID_Zaduzenja;
-                        });
-                        tableContent.splice(tableIndex, 1);
+                    let options = {
+                        buttons: ["Da", "Ne"],
+                        message: "Da ste sigurni da zelite da obrisete?"
+                    };
+                    let response = dialog.showMessageBoxSync(options);
+                    if (response == 0) {
+                        let $row = $(this).closest("tr");
+                        let ID_Zaduzenja = $row.find("td:first").text();
                         
-                        numberOfPages = Math.ceil(tableContent.length / pageSize);
-                        if (currentPage > numberOfPages) currentPage--;
-                        createTable("listaZaduzenja", tableContent, true, currentPage);
-                        updatePagination(currentPage, numberOfPages);
-                    });
+                        ipcRenderer.send("delete-Zaduzenje", ID_Zaduzenja);
+                        ipcRenderer.once("deletedRow", () => {
+                            let rowsIndex = rowsZaduzenje.findIndex((element) => {
+                                return element.ID_Zaduzenja == ID_Zaduzenja;
+                            });
+                            rowsZaduzenje.splice(rowsIndex, 1);
+                            let tableIndex = tableContent.findIndex((element) => {
+                                return element.ID_Zaduzenja == ID_Zaduzenja;
+                            });
+                            tableContent.splice(tableIndex, 1);
+                            
+                            numberOfPages = Math.ceil(tableContent.length / pageSize);
+                            if (currentPage > numberOfPages) currentPage--;
+                            createTable("listaZaduzenja", tableContent, true, currentPage);
+                            updatePagination(currentPage, numberOfPages);
+                        });
+                    }
                 });
 
                 $(document).on("click", ".editRow", function() {
@@ -264,10 +272,10 @@
 
             function confirmEdit(btn, prev_PrezimeIme, prev_SifraArtikla, prev_Kolicina) {
                 let $row = $(btn).closest("tr");
-                let ID_Zaduzenja = $row.find("#ID_Zaduzenja").text();
+                let ID_Zaduzenja = parseInt($row.find("#ID_Zaduzenja").text());
                 let PrezimeIme = $row.find("#PrezimeIme").val();
                 let SifraArtikla = parseInt($row.find("#SifraArtikla").val()), Naziv = $row.find("#Naziv").attr("placeholder"), JedinicaMere = $row.find("#JedinicaMere").attr("placeholder");
-                let Kolicina = parseInt($row.find("#Kolicina").val()), Datum = $row.find("#Datum").val();
+                let Kolicina = parseFloat($row.find("#Kolicina").val()), Datum = $row.find("#Datum").val();
                 let formatDatum = Datum.substr(8, 2) + '.' + Datum.substr(5, 2) + '.' + Datum.substr(0, 4) + '.';
 
                 ipcRenderer.send("edit-Zaduzenje", ID_Zaduzenja, prev_PrezimeIme, prev_SifraArtikla, prev_Kolicina, PrezimeIme, SifraArtikla, Kolicina, Datum);

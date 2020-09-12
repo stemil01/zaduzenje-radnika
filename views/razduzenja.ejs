@@ -38,6 +38,7 @@
         <script src="../src/renderer.js"></script>
         <script>
             const { ipcRenderer } = require('electron');
+            const { dialog } = require('electron').remote;
             const $ = require('jquery');
 
             let rowsRazduzenje;
@@ -60,25 +61,32 @@
 
             $(document).ready(function() {
                 $(document).on("click", ".deleteRow", function() {
-                    let $row = $(this).closest("tr");
-                    let ID_Razduzenja = $row.find("td:first").text();
-                    
-                    ipcRenderer.send("delete-Razduzenje", ID_Razduzenja);
-                    ipcRenderer.once("deletedRow", () => {
-                        let rowsIndex = rowsRazduzenje.findIndex((element) => {
-                            return element.ID_Razduzenja == ID_Razduzenja;
-                        });
-                        rowsRazduzenje.splice(rowsIndex, 1);
-                        let tableIndex = tableContent.findIndex((element) => {
-                            return element.ID_Razduzenja == ID_Razduzenja;
-                        });
-                        tableContent.splice(tableIndex, 1);
+                    let options = {
+                        buttons: ["Da", "Ne"],
+                        message: "Da ste sigurni da zelite da obrisete?"
+                    };
+                    let response = dialog.showMessageBoxSync(options);
+                    if (response == 0) {
+                        let $row = $(this).closest("tr");
+                        let ID_Razduzenja = $row.find("td:first").text();
+                        
+                        ipcRenderer.send("delete-Razduzenje", ID_Razduzenja);
+                        ipcRenderer.once("deletedRow", () => {
+                            let rowsIndex = rowsRazduzenje.findIndex((element) => {
+                                return element.ID_Razduzenja == ID_Razduzenja;
+                            });
+                            rowsRazduzenje.splice(rowsIndex, 1);
+                            let tableIndex = tableContent.findIndex((element) => {
+                                return element.ID_Razduzenja == ID_Razduzenja;
+                            });
+                            tableContent.splice(tableIndex, 1);
 
-                        numberOfPages = Math.ceil(tableContent.length / pageSize);
-                        if (currentPage > numberOfPages) currentPage--;
-                        createTable("listaRazduzenja", tableContent, true, currentPage);
-                        updatePagination(currentPage, numberOfPages);
-                    });
+                            numberOfPages = Math.ceil(tableContent.length / pageSize);
+                            if (currentPage > numberOfPages) currentPage--;
+                            createTable("listaRazduzenja", tableContent, true, currentPage);
+                            updatePagination(currentPage, numberOfPages);
+                        });
+                    }
                 });
 
                 $(document).on("click", ".editRow", function() {
@@ -95,7 +103,7 @@
                         ipcRenderer.send("req-ZaduzenjePoRadniku", ID_Radnika, ID_Artikla);
                         ipcRenderer.once("res-ZaduzenjePoRadniku", (evt, row) => {
                             let [zaduzenaKolicina] = Object.values(row);
-                            zaduzenaKolicina += parseInt(Kolicina);
+                            // zaduzenaKolicina += parseInt(Kolicina);
 
                             let rowHTML = `<td class="value" style="display: none;" id="ID_Razduzenja">${ID_Razduzenja}</td>
                                         <td>
@@ -317,11 +325,11 @@
 
             function confirmEdit(btn, prev_ID_Radnika, prev_ID_Artikla, prev_Kolicina) {
                 let $row = $(btn).closest("tr");
-                let ID_Razduzenja = $row.find("#ID_Razduzenja").text();
-                let ID_Radnika = $row.find("#PrezimeIme").val(), PrezimeIme = $row.find("#PrezimeIme option:selected").text();
-                let ID_Artikla = $row.find("#SifraArtikla").val(), SifraArtikla = parseInt($row.find("#SifraArtikla option:selected").text());
+                let ID_Razduzenja = parseInt($row.find("#ID_Razduzenja").text());
+                let ID_Radnika = parseInt($row.find("#PrezimeIme").val()), PrezimeIme = $row.find("#PrezimeIme option:selected").text();
+                let ID_Artikla = parseInt($row.find("#SifraArtikla").val()), SifraArtikla = parseInt($row.find("#SifraArtikla option:selected").text());
                 let Naziv = $row.find("#Naziv").attr("placeholder"), JedinicaMere = $row.find("#JedinicaMere").attr("placeholder");
-                let Kolicina = parseInt($row.find("#Kolicina").val()), Datum = $row.find("#Datum").val();
+                let Kolicina = parseFloat($row.find("#Kolicina").val()), Datum = $row.find("#Datum").val();
                 let formatDatum = Datum.substr(8, 2) + '.' + Datum.substr(5, 2) + '.' + Datum.substr(0, 4) + '.';
 
                 ipcRenderer.send("edit-Razduzenje", ID_Razduzenja, prev_ID_Radnika, prev_ID_Artikla, prev_Kolicina, ID_Radnika, ID_Artikla, Kolicina, Datum);

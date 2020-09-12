@@ -37,6 +37,7 @@
         <script src="../src/renderer.js"></script>
         <script>
             const { ipcRenderer } = require('electron');
+            const { dialog } = require('electron').remote;
             const $ = require('jquery');
 
             let rowsUlaz;
@@ -59,24 +60,32 @@
 
             $(document).ready(function () {
                 $(document).on("click", ".deleteRow", function () {
-                    let $row = $(this).closest("tr");
-                    let ID_Ulaza = $row.find('td:first').text();
-                    ipcRenderer.send("delete-Ulaz", ID_Ulaza);
-                    ipcRenderer.once("deletedRow", () => {
-                        let rowsIndex = rowsUlaz.findIndex((element) => {
-                            return element.ID_Ulaza == ID_Ulaza;
-                        });
-                        rowsUlaz.splice(rowsIndex, 1);
-                        let tableIndex = tableContent.findIndex((element) => {
-                            return element.ID_Ulaza == ID_Ulaza;
-                        });
-                        tableContent.splice(tableIndex, 1);
+                    let options = {
+                        buttons: ["Da", "Ne"],
+                        message: "Da ste sigurni da zelite da obrisete?"
+                    };
+                    let response = dialog.showMessageBoxSync(options);
+                    if (response == 0) {
+                        let $row = $(this).closest("tr");
+                        let ID_Ulaza = $row.find('td:first').text();
 
-                        numberOfPages = Math.ceil(tableContent.length / pageSize);
-                        if (currentPage > numberOfPages) currentPage--;
-                        createTable("listaUlaza", tableContent, true, currentPage);
-                        updatePagination(currentPage, numberOfPages);
-                    })
+                        ipcRenderer.send("delete-Ulaz", ID_Ulaza);
+                        ipcRenderer.once("deletedRow", () => {
+                            let rowsIndex = rowsUlaz.findIndex((element) => {
+                                return element.ID_Ulaza == ID_Ulaza;
+                            });
+                            rowsUlaz.splice(rowsIndex, 1);
+                            let tableIndex = tableContent.findIndex((element) => {
+                                return element.ID_Ulaza == ID_Ulaza;
+                            });
+                            tableContent.splice(tableIndex, 1);
+
+                            numberOfPages = Math.ceil(tableContent.length / pageSize);
+                            if (currentPage > numberOfPages) currentPage--;
+                            createTable("listaUlaza", tableContent, true, currentPage);
+                            updatePagination(currentPage, numberOfPages);
+                        })
+                    }
                 });
 
                 $(document).on("click", ".editRow", function () {
@@ -237,11 +246,11 @@
 
             function confirmEdit(btn, prev_SifraArtikla, prev_Kolicina) {
                 let $row = $(btn).closest("tr");
-                let ID_Ulaza = $row.find("#ID_Ulaza").text();
+                let ID_Ulaza = parseInt($row.find("#ID_Ulaza").text());
                 let SifraArtikla = parseInt($row.find("#SifraArtikla").val());
                 let Naziv = $row.find("#Naziv").attr("placeholder");
                 let JedinicaMere = $row.find("#JedinicaMere").attr("placeholder");
-                let Kolicina = parseInt($row.find("#Kolicina").val());
+                let Kolicina = parseFloat($row.find("#Kolicina").val());
                 let Datum = $row.find("#Datum").val();
                 let formatDatum = Datum.substr(8, 2) + '.' + Datum.substr(5, 2) + '.' + Datum.substr(0, 4) + '.';
 
