@@ -351,6 +351,8 @@ app.on('ready', () => {
             SELECT DISTINCT R.ID_Radnika, R.PrezimeIme
             FROM Radnik R, ZaduzenjePoRadniku ZR
             WHERE R.ID_Radnika=ZR.ID_Radnika AND ZR.Kolicina>0
+
+            SELECT 
         `, (err, rows) => {
             if (err) {
                 throw err;
