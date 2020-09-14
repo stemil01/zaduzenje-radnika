@@ -58,7 +58,7 @@
             }
 
             $(document).ready(function() {
-                $(document).on("click", ".deleteRow", function() {
+                $(document).on("click", ".deleteRow", debounce(() => {
                     let options = {
                         buttons: ["Da", "Ne"],
                         message: "Da ste sigurni da zelite da obrisete?"
@@ -85,7 +85,7 @@
                             updatePagination(currentPage, numberOfPages);
                         });
                     }
-                });
+                }, 350));
 
                 $(document).on("click", ".editRow", function() {
                     let $row = $(this).closest("tr");

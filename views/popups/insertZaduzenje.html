@@ -63,9 +63,9 @@
             $(document).ready(function() {
                 $(document).on("change", "#SifraArtikla", function() {
                     let ID_Artikla = $("#SifraArtikla").val();
-                    ipcRenderer.send("get-JedinicaMere", ID_Artikla);
-                    ipcRenderer.once("JedinicaMere", (evt, row) => {
-                        let [JedinicaMere, UkupnaKolicina] = Object.values(row);
+                    ipcRenderer.send("req-Naziv-JedinicaMere-UkupnaKolicina", ID_Artikla);
+                    ipcRenderer.once("res-Naziv-JedinicaMere-UkupnaKolicina", (evt, row) => {
+                        let [Naziv, JedinicaMere, UkupnaKolicina] = Object.values(row);
                         $("#labelKolicina").html(`Kolicina (${JedinicaMere}):`);
                         $("#Kolicina").attr("max", UkupnaKolicina);
                         $("#Kolicina").attr("placeholder", `U skladistu je ${UkupnaKolicina}`);

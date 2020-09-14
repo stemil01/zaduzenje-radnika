@@ -19,8 +19,10 @@ app.on('ready', () => {
 
     // ARTIKL
     ipcMain.on("list-Artikl", () => {
-        database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
-            FROM Artikl`, (err, rows) => {
+        database.db.all(`
+            SELECT ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena
+            FROM Artikl
+            `, (err, rows) => {
                 if (err) {
                     throw err;
                 }
@@ -29,37 +31,43 @@ app.on('ready', () => {
     });
 
     ipcMain.on("insert-Artikl", (evt, SifraArtikla, Naziv, JedinicaMere, Cena) => {
-        database.db.run(`INSERT INTO Artikl(SifraArtikla, Naziv, JedinicaMere, Cena)
-                        VALUES(?, ?, ?, ?)`, [SifraArtikla, Naziv, JedinicaMere, Cena], (err) => {
-                            if (err) {
-                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                            } else {
-                                win.reload();
-                            }
-                        });
+        database.db.run(`
+            INSERT INTO Artikl(SifraArtikla, Naziv, JedinicaMere, Cena)
+            VALUES(?, ?, ?, ?)
+            `, [SifraArtikla, Naziv, JedinicaMere, Cena], (err) => {
+                if (err) {
+                    dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                } else {
+                    win.reload();
+                }
+            });
     });
 
     ipcMain.on("delete-Artikl", (evt, ID_Artikla) => {
-        database.db.run(`DELETE FROM Artikl
-                        WHERE ID_Artikla=?`, ID_Artikla, (err) => {
-                            if (err) {
-                                throw err;
-                            } else {
-                                win.webContents.send("deletedRow");
-                            }
-                        });
+        database.db.run(`
+            DELETE FROM Artikl
+            WHERE ID_Artikla=?
+            `, ID_Artikla, (err) => {
+                if (err) {
+                    throw err;
+                } else {
+                    win.webContents.send("deletedRow");
+                }
+            });
     });
 
     ipcMain.on("edit-Artikl", (evt, ID_Artikla, SifraArtikla, Naziv, JedinicaMere, Cena) => {
-        database.db.run(`UPDATE Artikl
-                        SET SifraArtikla=?, Naziv=?, JedinicaMere=?, Cena=?
-                        WHERE ID_Artikla=?`, [SifraArtikla, Naziv, JedinicaMere, Cena, ID_Artikla], (err) => {
-                            if (err) {
-                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                            } else {
-                                win.webContents.send("edited-Artikl");
-                            }
-                        });
+        database.db.run(`
+            UPDATE Artikl
+            SET SifraArtikla=?, Naziv=?, JedinicaMere=?, Cena=?
+            WHERE ID_Artikla=?
+            `, [SifraArtikla, Naziv, JedinicaMere, Cena, ID_Artikla], (err) => {
+                if (err) {
+                    dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                } else {
+                    win.webContents.send("edited-Artikl");
+                }
+            });
     });
 
     // ipcMain.on("sort-Artikl", (evt, attribute, desc, key, searchBy) => {
@@ -88,48 +96,55 @@ app.on('ready', () => {
 
     // RADNIK
     ipcMain.on("list-Radnik", () => {
-        database.db.all(`SELECT ID_Radnika, PrezimeIme
-                        FROM Radnik`, (err, rows) => {
-                            if (err) {
-                                throw err;
-                            }
-                            win.webContents.send("rows-Radnik", rows);
-                        });
+        database.db.all(`
+            SELECT ID_Radnika, PrezimeIme
+            FROM Radnik`, (err, rows) => {
+                if (err) {
+                    throw err;
+                }
+                win.webContents.send("rows-Radnik", rows);
+            });
     });
 
 
     ipcMain.on("insert-Radnik", (evt, PrezimeIme) => {
-        database.db.run(`INSERT INTO Radnik(PrezimeIme)
-                        VALUES(?)`, PrezimeIme, (err) => {
-                            if (err) {
-                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                            } else {
-                                win.reload();
-                            }
-                        });
+        database.db.run(`
+            INSERT INTO Radnik(PrezimeIme)
+            VALUES(?)
+            `, PrezimeIme, (err) => {
+                if (err) {
+                    dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                } else {
+                    win.reload();
+                }
+            });
     });
 
     ipcMain.on("delete-Radnik", (evt, ID_Radnika) => {
-        database.db.run(`DELETE FROM Radnik
-                        WHERE ID_Radnika=?`, ID_Radnika, (err) => {
-                            if (err) {
-                                throw err;
-                            } else {
-                                win.webContents.send("deletedRow");
-                            }
-                        });
+        database.db.run(`
+            DELETE FROM Radnik
+            WHERE ID_Radnika=?
+            `, ID_Radnika, (err) => {
+                if (err) {
+                    throw err;
+                } else {
+                    win.webContents.send("deletedRow");
+                }
+            });
     });
 
     ipcMain.on("edit-Radnik", (evt, ID_Radnika, PrezimeIme) => {
-        database.db.run(`UPDATE Radnik
-                        SET PrezimeIme=?
-                        WHERE ID_Radnika=?`, [PrezimeIme, ID_Radnika], (err) => {
-                            if (err) {
-                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                            } else {
-                                win.webContents.send("edited-Radnik");
-                            }
-                        });
+        database.db.run(`
+            UPDATE Radnik
+            SET PrezimeIme=?
+            WHERE ID_Radnika=?
+            `, [PrezimeIme, ID_Radnika], (err) => {
+                if (err) {
+                    dialog.showErrorBox('Greska pri unosu podataka', err.message);
+                } else {
+                    win.webContents.send("edited-Radnik");
+                }
+            });
     });
 
     // ipcMain.on("sort-Radnik", (evt, attribute, desc, key, searchBy) => {
@@ -165,36 +180,42 @@ app.on('ready', () => {
 
     // ULAZ
     ipcMain.on("req-SifraArtikla", (event) => {
-        database.db.all(`SELECT ID_Artikla, SifraArtikla, Naziv
-                        FROM Artikl`, (err, rows) => {
-                            if (err) {
-                                throw err;
-                            }
-                            event.sender.send("res-SifraArtikla", rows);
-                        });
+        database.db.all(`
+            SELECT ID_Artikla, SifraArtikla, Naziv
+            FROM Artikl
+            `, (err, rows) => {
+                if (err) {
+                    throw err;
+                }
+                event.sender.send("res-SifraArtikla", rows);
+            });
     });
 
     ipcMain.on("list-Ulaz", () => {
-        database.db.all(`SELECT U.ID_Ulaza, A.SifraArtikla, A.Naziv, A.JedinicaMere, U.Kolicina, U.Datum
-                        FROM Ulaz U, Artikl A
-                        WHERE U.ID_Artikla=A.ID_Artikla
-                        ORDER BY U.Datum DESC`, (err, rows) => {
-                            if (err) {
-                                throw err;
-                            }
-                            win.webContents.send("rows-Ulaz", rows);
-                        });
+        database.db.all(`
+            SELECT U.ID_Ulaza, A.SifraArtikla, A.Naziv, A.JedinicaMere, U.Kolicina, U.Datum
+            FROM Ulaz U, Artikl A
+            WHERE U.ID_Artikla=A.ID_Artikla
+            ORDER BY U.Datum DESC
+            `, (err, rows) => {
+                if (err) {
+                    throw err;
+                }
+                win.webContents.send("rows-Ulaz", rows);
+            });
     });
 
     ipcMain.on("get-JedinicaMere", (event, ID_Artikla) => {
-        database.db.get(`SELECT JedinicaMere, UkupnaKolicina
-                        FROM Artikl
-                        WHERE ID_Artikla=?`, ID_Artikla, (err, row) => {
-                            if (err) {
-                                throw err;
-                            }
-                            event.sender.send("JedinicaMere", row);
-                        });
+        database.db.get(`
+            SELECT JedinicaMere, UkupnaKolicina
+            FROM Artikl
+            WHERE ID_Artikla=?
+            `, ID_Artikla, (err, row) => {
+                if (err) {
+                    throw err;
+                }
+                event.sender.send("JedinicaMere", row);
+            });
     });
 
     ipcMain.on("insert-Ulaz", (evt, ID_Artikla, Kolicina, Datum) => {
@@ -320,13 +341,15 @@ app.on('ready', () => {
     });
 
     ipcMain.on("req-Radnik", (event) => {
-        database.db.all(`SELECT ID_Radnika, PrezimeIme
-                        FROM Radnik`, (err, rows) => {
-                            if (err) {
-                                throw err;
-                            }
-                            event.sender.send("res-Radnik", rows);
-                        });
+        database.db.all(`
+            SELECT ID_Radnika, PrezimeIme
+            FROM Radnik
+            `, (err, rows) => {
+                if (err) {
+                    throw err;
+                }
+                event.sender.send("res-Radnik", rows);
+            });
     });
 
     // ipcMain.on("sort-Skladiste", (evt, attribute, desc, key, searchBy) => {
