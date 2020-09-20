@@ -155,11 +155,32 @@ app.on('ready', () => {
             SELECT JedinicaMere
             FROM Artikl
             WHERE ID_Artikla=?
+        `, ID_Artikla, (err, row) => {
+            if (err) {
+                throw err;
+            }
+            event.sender.send("JedinicaMere", row);
+        });
+    });
+
+    ipcMain.on("get-JedinicaMere-UkupnaKolicina", (event, ID_Artikla) => {
+        database.db.get(`
+            SELECT A.JedinicaMere, ROUND((
+                SELECT IFNULL(SUM(Kolicina), 0)
+                FROM Ulaz U
+                WHERE U.ID_Artikla=A.ID_Artikla
+                ) - (
+                SELECT IFNULL(SUM(Kolicina), 0)
+                FROM Zaduzenje Z
+                WHERE Z.ID_Artikla=A.ID_Artikla
+                ), 3) [UkupnaKolicina]
+            FROM Artikl A
+            WHERE A.ID_Artikla=?
             `, ID_Artikla, (err, row) => {
                 if (err) {
                     throw err;
                 }
-                event.sender.send("JedinicaMere", row);
+                event.sender.send("JedinicaMere-UkupnaKolicina", row);
             });
     });
 
@@ -204,7 +225,7 @@ app.on('ready', () => {
     ipcMain.on("edit-Ulaz", (evt, ID_Ulaza, prev_SifraArtikla, SifraArtikla, prev_Kolicina, Kolicina, Datum) => {
         database.db.run(`
             UPDATE Ulaz
-            SET ID_Artikla=(SELECT ID_Arikla FROM Artikl WHERE SifraArtikla=?), Kolicina=?, Datum=?
+            SET ID_Artikla=(SELECT ID_Artikla FROM Artikl WHERE SifraArtikla=?), Kolicina=?, Datum=?
             WHERE ID_Ulaza=?
         `, [SifraArtikla, Kolicina, Datum, ID_Ulaza], (err) => {
             if (err) {
@@ -218,14 +239,19 @@ app.on('ready', () => {
     // SKLADISTE
     ipcMain.on("list-Skladiste", () => {
         database.db.all(`
-            SELECT A.Naziv, SUM(U.Kolicina) - (
-                SELECT SUM(Z.Kolicina)
-                FROM Zaduzenje Z
-                WHERE Z.ID_Artikla=A.ID_Artikla
-            )
-            FROM Artikl A, Ulaz U
-            WHERE A.ID_Artikla=U.ID_Artikla
-            GROUP BY A.ID_Artikla
+            SELECT A.ID_Artikla, A.Naziv, A.JedinicaMere, A.Cena, ROUND(Res.UkupnaKolicina, 3) [UkupnaKolicina], ROUND(Res.UkupnaKolicina*Cena, 3) [Vrednost]
+            FROM (
+                SELECT Un.ID_Artikla, IFNULL(SUM(Kolicina), 0) [UkupnaKolicina]
+                FROM (
+                    SELECT ID_Artikla, Kolicina
+                    FROM Ulaz
+                    UNION ALL
+                    SELECT ID_Artikla, -Kolicina
+                    FROM Zaduzenje
+                ) Un
+                GROUP BY Un.ID_Artikla
+            ) Res, Artikl A
+            WHERE A.ID_Artikla=Res.ID_Artikla
         `, (err, rows) => {
             if (err) {
                 throw err;
@@ -266,13 +292,13 @@ app.on('ready', () => {
             SELECT ID_Artikla, SifraArtikla, Naziv
             FROM Artikl A
             WHERE (
-                SELECT SUM(Kolicina)
-                FROM Ulaz
-                WHERE ID_Artikla=A.ID_Artikla
+                SELECT IFNULL(ROUND(SUM(Kolicina), 3), 0)
+                FROM Ulaz U
+                WHERE U.ID_Artikla=A.ID_Artikla
             ) > (
-                SELECT SUM(Kolicina)
-                FROM Zaduzenje
-                WHERE ID_Artikla=A.ID_Artikla
+                SELECT IFNULL(ROUND(SUM(Kolicina), 3), 0)
+                FROM Zaduzenje Z
+                WHERE Z.ID_Artikla=A.ID_Artikla
             )
         `, (err, rows) => {
             if (err) {
@@ -314,15 +340,15 @@ app.on('ready', () => {
 
     ipcMain.on("req-Naziv-JedinicaMere-UkupnaKolicina", (evt, SifraArtikla) => {
         database.db.get(`
-            SELECT Naziv, JedinicaMere, (
-                SELECT SUM(Kolicina)
+            SELECT Naziv, JedinicaMere, ROUND((
+                SELECT IFNULL(SUM(Kolicina), 0)
                 FROM Ulaz
                 WHERE ID_Artikla=A.ID_Artikla
             ) - (
-                SELECT SUM(Kolicina)
+                SELECT IFNULL(SUM(Kolicina), 0)
                 FROM Zaduzenje
                 WHERE ID_Artikla=A.ID_Artikla
-            )
+            ), 3)
             FROM Artikl A
             WHERE SifraArtikla=?
         `, [SifraArtikla], (err, row) => {
@@ -348,11 +374,17 @@ app.on('ready', () => {
     // RAZDUZENJE
     ipcMain.on("req-zaduzen-Radnik", (event) => {
         database.db.all(`
-            SELECT DISTINCT R.ID_Radnika, R.PrezimeIme
-            FROM Radnik R, ZaduzenjePoRadniku ZR
-            WHERE R.ID_Radnika=ZR.ID_Radnika AND ZR.Kolicina>0
-
-            SELECT 
+            SELECT ID_Radnika, PrezimeIme
+            FROM Radnik R
+            WHERE (
+                SELECT IFNULL(ROUND(SUM(Kolicina), 3), 0)
+                FROM Zaduzenje
+                WHERE ID_Radnika=R.ID_Randnika
+            ) > (
+                SELECT IFNULL(ROUND(SUM(Kolicina), 3), 0)
+                FROM Razduzenje
+                WHERE ID_Ranika=R.ID_Radnika
+            )
         `, (err, rows) => {
             if (err) {
                 throw err;
@@ -363,9 +395,17 @@ app.on('ready', () => {
 
     ipcMain.on("req-zaduzen-Artikl", (event) => {
         database.db.all(`
-            SELECT DISTINCT A.ID_Artikla, A.SifraArtikla, A.Naziv
-            FROM Artikl A, ZaduzenjePoRadniku ZR
-            WHERE A.ID_Artikla=ZR.ID_Artikla AND ZR.Kolicina>0
+            SELECT ID_Artikla, SifraArtikla, Naziv
+            FROM Artikl A
+            WHERE (
+                SELECT IFNULL(ROUND(SUM(Kolcina), 3), 0)
+                FROM Zaduzenje
+                WHERE ID_Artikla=A.ID_Artikla
+            ) > (
+                SELECT IFNULL(ROUND(SUM(Kolicina), 3), 0)
+                FROM Razduzenje
+                WHERE ID_Artikla=A.ID_Artikla
+            )
         `, (err, rows) => {
             if (err) {
                 throw err;
@@ -376,10 +416,18 @@ app.on('ready', () => {
 
     ipcMain.on("req-Artikl-zaRadnik", (event, ID_Radnika) => {
         database.db.all(`
-            SELECT DISTINCT A.ID_Artikla, A.SifraArtikla, A.Naziv
-            FROM Artikl A, ZaduzenjePoRadniku ZR
-            WHERE A.ID_Artikla=ZR.ID_Artikla AND ZR.ID_Radnika=? AND ZR.Kolicina>0
-        `, ID_Radnika, (err, rows) => {
+            SELECT ID_Artikla, SifraArtikla, Naziv
+            FROM Artikl A
+            WHERE (
+                SELECT IFNULL(ROUND(SUM(Kolicina), 3), 0)
+                FROM Zaduzenje
+                WHERE ID_Radnika=? AND ID_Artikla=A.ID_Artikla
+            ) > (
+                SELECT IFNULL(ROUND(SUM(Kolicina), 3), 0)
+                FROM Razduzenje
+                WHERE ID_Radnika=? AND ID_Artikla=A.ID_Artikla
+            )
+        `, [ID_Radnika, ID_Radnika], (err, rows) => {
             if (err) {
                 throw err;
             }
@@ -389,8 +437,12 @@ app.on('ready', () => {
 
     ipcMain.on("req-ZaduzenjePoRadniku", (event, ID_Radnika, ID_Artikla) => {
         database.db.get(`
-            SELECT Kolicina
-            FROM ZaduzenjePoRadniku
+            SELECT SUM(Kolicina) - (
+                SELECT SUM(Kolicina)
+                FROM Razduzenje
+                WHERE ID_Radnika=? AND ID_Artikla=?
+            )
+            FROM Zaduzenje
             WHERE ID_Radnika=? AND ID_Artikla=?
         `, [ID_Radnika, ID_Artikla], (err, row) => {
             if (err) {
@@ -401,34 +453,35 @@ app.on('ready', () => {
     });
 
     // ZADUZENJE PO RADNIKU
+    // proveri za ime kolone "Ukupna kolicina"!
     ipcMain.on("list-Radnik-Zaduzenje", (evt, PrezimeIme) => {
-        database.db.get(`
-            SELECT ID_Radnika
-            FROM Radnik
-            WHERE PrezimeIme=?
-        `, PrezimeIme, (err, row) => {
+        database.db.all(`
+            SELECT '', A.SifraArtikla, A.Naziv, A.JedinicaMere, SUM(Z.Kolicina) - (
+                SELECT SUM(Kolicina)
+                FROM Razduzenje
+                WHERE ID_Radnika=(SELECT ID_Radnika FROM Radnik WHERE PrezimeIme=?) AND ID_Artikla=A.ID_Artikla
+            ) [Ukupna kolicina], [Ukupna kolicina]*A.Cena [Vrednost]
+            FROM Artikl A, Zaduzenje Z
+            WHERE A.ID_Artikla=Z.ID_Artikla AND Z.ID_Radnika=(SELECT ID_Radnika FROM Radnik WHERE PrezeimeIme=?)
+        `, [PrezimeIme, PrezimeIme], (err, rows) => {
             if (err) {
                 throw err;
             }
-            let [ID_Radnika] = Object.values(row);
-            database.db.all(`
-                SELECT '', A.SifraArtikla, A.Naziv, A.JedinicaMere, ZR.Kolicina, ROUND(A.Cena*ZR.Kolicina, 3) [Vrednost]
-                FROM Artikl A, ZaduzenjePoRadniku ZR
-                WHERE A.ID_Artikla=ZR.ID_Artikla AND ZR.ID_Radnika=? AND ZR.Kolicina>0
-            `, ID_Radnika, (err, rows) => {
-                if (err) {
-                    throw err;
-                }
-                win.webContents.send("Radnik-Zaduzenje", rows);
-            });
+            win.webContents.send("Radnik-Zaduzenje", rows);
         });
     });
 
     ipcMain.on("req-ukupno-zaduzenje", (evt, ID_Radnika) => {
         database.db.get(`
-            SELECT ROUND(SUM(ROUND(A.Cena*ZR.Kolicina, 3)), 3)
-            FROM Artikl A, ZaduzenjePoRadniku ZR
-            WHERE A.ID_Artikla=ZR.ID_Artikla AND ZR.ID_Radnika=?
+            SELECT (
+                SELECT SUM(Z.Kolicina*A.Cena)
+                FROM Artikl A, Zaduzenje Z
+                WHERE A.ID_Artikla=Z.ID_Artikla AND Z.ID_Radnika=?
+            ) - (
+                SELECT SUM(R.Kolicina*A.Cena)
+                FROM Artikl A, Razduzenje R
+                WHERE A.ID_Artikla=R.ID_Artikla AND R.ID_Radnika=?
+            )
         `, ID_Radnika, (err, row) => {
             if (err) {
                 throw err;
@@ -437,38 +490,15 @@ app.on('ready', () => {
         });
     });
 
-    // ipcMain.on("req-Radnik-zaArtikl", (event, ID_Artikla) => {
-    //     database.db.all(`
-    //         SELECT DISTINCT R.ID_Radnika, R.PrezimeIme
-    //         FROM Radnik R, ZaduzenjePoRadniku ZR
-    //         WHERE R.ID_Radnika=ZR.ID_Radnika AND ZR.ID_Artikla=? AND ZR.Kolicina>0
-    //     `, ID_Artikla, (err, rows) => {
-    //         if (err) {
-    //             throw err;
-    //         }
-    //         event.sender.send("res-Radnik-zaArtikl", rows);
-    //     });
-    // });
-
     ipcMain.on("insert-Razduzenje", (evt, ID_Radnika, ID_Artikla, Kolicina, Datum) => {
         database.db.run(`
-            UPDATE ZaduzenjePoRadniku
-            SET Kolicina=ROUND(Kolicina-?, 3)
-            WHERE ID_Radnika=? AND ID_Artikla=?
-        `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
+            INSERT INTO Razduzenje(ID_Radnika, ID_Artikla, Kolicina, Datum)
+            VALUES(?, ?, ?, ?)
+        `, [ID_Radnika, ID_Artikla, Kolicina, Datum], (err) => {
             if (err) {
                 dialog.showErrorBox('Greska pri unosu podataka', err.message);
             } else {
-                database.db.run(`
-                    INSERT INTO Razduzenje(ID_Radnika, ID_Artikla, Kolicina, Datum)
-                    VALUES(?, ?, ?, ?)
-                `, [ID_Radnika, ID_Artikla, Kolicina, Datum], (err) => {
-                    if (err) {
-                        dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                    } else {
-                        win.reload();
-                    }
-                });
+                win.reload();
             }
         });
     });
@@ -505,66 +535,27 @@ app.on('ready', () => {
 
     ipcMain.on("edit-Razduzenje", (evt, ID_Razduzenja, prev_ID_Radnika, prev_ID_Artikla, prev_Kolicina, ID_Radnika, ID_Artikla, Kolicina, Datum) => {
         database.db.run(`
-            UPDATE ZaduzenjePoRadniku
-            SET Kolicina=ROUND(Kolicina+?, 3)
-            WHERE ID_Radnika=? AND ID_Artikla=?
-        `, [prev_Kolicina, prev_ID_Radnika, prev_ID_Artikla], (err) => {
+            UPDATE Razduzenje
+            SET ID_Radnika=?, ID_Artikla=?, Kolicina=?, Datum=?
+            WHERE ID_Razduzenja=?
+        `, [ID_Radnika, ID_Artikla, Kolicina, Datum, ID_Razduzenja], (err) => {
             if (err) {
                 dialog.showErrorBox('Greska pri unosu podataka', err.message);
             } else {
-                database.db.run(`
-                    UPDATE ZaduzenjePoRadniku
-                    SET Kolicina=ROUND(Kolicina-?, 3)
-                    WHERE ID_Radnika=? AND ID_Artikla=?
-                `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
-                    if (err) {
-                        dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                    } else {
-                        database.db.run(`
-                            UPDATE Razduzenje
-                            SET ID_Radnika=?, ID_Artikla=?, Kolicina=?, Datum=?
-                            WHERE ID_Razduzenja=?
-                        `, [ID_Radnika, ID_Artikla, Kolicina, Datum, ID_Razduzenja], (err) => {
-                            if (err) {
-                                dialog.showErrorBox('Greska pri unosu podataka', err.message);
-                            } else {
-                                win.webContents.send("edited-Razduzenje");
-                            }
-                        })
-                    }
-                })
+                win.webContents.send("edited-Razduzenje");
             }
         });
     });
 
     ipcMain.on("delete-Razduzenje", (evt, ID_Razduzenja) => {
-        database.db.get(`
-            SELECT ID_Radnika, ID_Artikla, Kolicina
-            FROM Razduzenje
-            WHERE ID_Razduzenja=?
-        `, ID_Razduzenja, (err, row) => {
+        database.db.run(`
+            DELETE FROM Razduzenje
+            WHERE ID_Razduznja=?
+        `, ID_Razduzenja, (err) => {
             if (err) {
                 throw err;
             }
-            let [ID_Radnika, ID_Artikla, Kolicina] = Object.values(row);
-            database.db.run(`
-                UPDATE ZaduzenjePoRadniku
-                SET Kolicina=ROUND(Kolicina+?, 3)
-                WHERE ID_Radnika=? AND ID_Artikla=?
-            `, [Kolicina, ID_Radnika, ID_Artikla], (err) => {
-                if (err) {
-                    throw err;
-                }
-                database.db.run(`
-                    DELETE FROM Razduzenje
-                    WHERE ID_Razduzenja=?
-                `, ID_Razduzenja, (err) => {
-                    if (err) {
-                        throw err;
-                    }
-                    win.webContents.send("deletedRow");
-                })
-            })
+            win.webContents.send("deletedRow");
         });
     });
 

@@ -59,14 +59,14 @@
             }
 
             $(document).ready(function() {
-                $(document).on("click", ".deleteRow", debounce(() => {
+                $(document).on("click", ".deleteRow", throttle(function() {
                     let options = {
                         buttons: ["Da", "Ne"],
                         message: "Da ste sigurni da zelite da obrisete?"
                     };
                     let response = dialog.showMessageBoxSync(options);
                     if (response == 0) {
-                        var $row = $(this).closest("tr");
+                        let $row = $(this).closest("tr");
                         let ID_Artikla = $row.find("td:first").text();
 
                         ipcRenderer.send("delete-Artikl", ID_Artikla);
@@ -86,7 +86,7 @@
                             updatePagination(currentPage, numberOfPages);
                         });
                     }
-                }, 350));
+                }, 500));
 
                 $(document).on("click", ".editRow", function() {
                     var $row = $(this).closest("tr");
