@@ -379,11 +379,11 @@ app.on('ready', () => {
             WHERE (
                 SELECT IFNULL(ROUND(SUM(Kolicina), 3), 0)
                 FROM Zaduzenje
-                WHERE ID_Radnika=R.ID_Randnika
+                WHERE ID_Radnika=R.ID_Radnika
             ) > (
                 SELECT IFNULL(ROUND(SUM(Kolicina), 3), 0)
                 FROM Razduzenje
-                WHERE ID_Ranika=R.ID_Radnika
+                WHERE ID_Radnika=R.ID_Radnika
             )
         `, (err, rows) => {
             if (err) {
@@ -398,7 +398,7 @@ app.on('ready', () => {
             SELECT ID_Artikla, SifraArtikla, Naziv
             FROM Artikl A
             WHERE (
-                SELECT IFNULL(ROUND(SUM(Kolcina), 3), 0)
+                SELECT IFNULL(ROUND(SUM(Kolicina), 3), 0)
                 FROM Zaduzenje
                 WHERE ID_Artikla=A.ID_Artikla
             ) > (
@@ -437,14 +437,14 @@ app.on('ready', () => {
 
     ipcMain.on("req-ZaduzenjePoRadniku", (event, ID_Radnika, ID_Artikla) => {
         database.db.get(`
-            SELECT SUM(Kolicina) - (
-                SELECT SUM(Kolicina)
+            SELECT ROUND(IFNULL(SUM(Kolicina), 0) - (
+                SELECT IFNULL(SUM(Kolicina), 0)
                 FROM Razduzenje
                 WHERE ID_Radnika=? AND ID_Artikla=?
-            )
+            ), 3)
             FROM Zaduzenje
             WHERE ID_Radnika=? AND ID_Artikla=?
-        `, [ID_Radnika, ID_Artikla], (err, row) => {
+        `, [ID_Radnika, ID_Artikla, ID_Radnika, ID_Artikla], (err, row) => {
             if (err) {
                 throw err;
             }
@@ -453,16 +453,23 @@ app.on('ready', () => {
     });
 
     // ZADUZENJE PO RADNIKU
-    // proveri za ime kolone "Ukupna kolicina"!
     ipcMain.on("list-Radnik-Zaduzenje", (evt, PrezimeIme) => {
         database.db.all(`
-            SELECT '', A.SifraArtikla, A.Naziv, A.JedinicaMere, SUM(Z.Kolicina) - (
-                SELECT SUM(Kolicina)
-                FROM Razduzenje
-                WHERE ID_Radnika=(SELECT ID_Radnika FROM Radnik WHERE PrezimeIme=?) AND ID_Artikla=A.ID_Artikla
-            ) [Ukupna kolicina], [Ukupna kolicina]*A.Cena [Vrednost]
-            FROM Artikl A, Zaduzenje Z
-            WHERE A.ID_Artikla=Z.ID_Artikla AND Z.ID_Radnika=(SELECT ID_Radnika FROM Radnik WHERE PrezeimeIme=?)
+            SELECT '', A.SifraArtikla, A.Naziv, A.JedinicaMere, A.Cena, Res.Kolicina, ROUND(Res.Kolicina*A.Cena, 3) [Vrednost]
+            FROM (
+                SELECT ID_Artikla, IFNULL(ROUND(SUM(Un.Kolicina), 3), 0) [Kolicina]
+                FROM (
+                    SELECT ID_Artikla, Kolicina
+                    FROM Zaduzenje
+                    WHERE ID_Radnika=(SELECT ID_Radnika FROM Radnik WHERE PrezimeIme=?)
+                    UNION ALL
+                    SELECT ID_Artikla, -Kolicina
+                    FROM Razduzenje
+                    WHERE ID_Radnika=(SELECT ID_Radnika FROM Radnik WHERE PrezimeIme=?)
+                ) Un
+                GROUP BY Un.ID_Artikla
+            ) Res, Artikl A
+            WHERE A.ID_Artikla=Res.ID_Artikla
         `, [PrezimeIme, PrezimeIme], (err, rows) => {
             if (err) {
                 throw err;
@@ -473,16 +480,14 @@ app.on('ready', () => {
 
     ipcMain.on("req-ukupno-zaduzenje", (evt, ID_Radnika) => {
         database.db.get(`
-            SELECT (
-                SELECT SUM(Z.Kolicina*A.Cena)
-                FROM Artikl A, Zaduzenje Z
-                WHERE A.ID_Artikla=Z.ID_Artikla AND Z.ID_Radnika=?
-            ) - (
-                SELECT SUM(R.Kolicina*A.Cena)
+            SELECT ROUND(IFNULL(SUM(Z.Kolicina*A.Cena), 0) - (
+                SELECT IFNULL(SUM(R.Kolicina*A.Cena), 0)
                 FROM Artikl A, Razduzenje R
                 WHERE A.ID_Artikla=R.ID_Artikla AND R.ID_Radnika=?
-            )
-        `, ID_Radnika, (err, row) => {
+            ), 3)
+            FROM Artikl A, Zaduzenje Z
+            WHERE A.ID_Artikla=Z.ID_Artikla AND Z.ID_Radnika=?
+        `, [ID_Radnika, ID_Radnika], (err, row) => {
             if (err) {
                 throw err;
             }

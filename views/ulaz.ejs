@@ -99,49 +99,43 @@
                     let formatDatum = $values.eq(5).text();
                     let Datum = formatDatum.substr(6, 4) + '-' + formatDatum.substr(3, 2) + '-' + formatDatum.substr(0, 2);
 
-                    ipcRenderer.send("req-Naziv-JedinicaMere-UkupnaKolicina", SifraArtikla);
-                    ipcRenderer.once("res-Naziv-JedinicaMere-UkupnaKolicina", (evt, row) => {
-                        let UkupnaKolicina = parseFloat(Object.values(row)[2]);
-                        let minValue = parseFloat(Math.max(Kolicina - UkupnaKolicina, 0).toFixed(3));
+                    let rowHTML = `<td class="value" style="display: none;" id="ID_Ulaza">${ID_Ulaza}</td>
+                                    <td>
+                                        <select id="SifraArtikla" class="selectpicker" data-live-search="true" required></select>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="Naziv" placeholder="${Naziv}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="JedinicaMere" placeholder="${JedinicaMere}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="number" step="any" id="Kolicina" value="${Kolicina}">
+                                    </td>
+                                    <td>
+                                        <input type="date" id="Datum" value="${Datum}">
+                                    </td>
+                                    <td>
+                                        <button type="button" id="confirmEdit" onclick="confirmEdit(this, '${SifraArtikla}', '${Kolicina}')">Potvrdi</button>
+                                    </td>
+                                    <td>
+                                        <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Ulaza}', '${SifraArtikla}', '${Naziv}', '${JedinicaMere}', '${Kolicina}', '${formatDatum}')">Ponisti</button>
+                                    </td>`;
 
-                        let rowHTML = `<td class="value" style="display: none;" id="ID_Ulaza">${ID_Ulaza}</td>
-                                        <td>
-                                            <select id="SifraArtikla" class="selectpicker" data-live-search="true" required></select>
-                                        </td>
-                                        <td>
-                                            <input type="text" id="Naziv" placeholder="${Naziv}" readonly>
-                                        </td>
-                                        <td>
-                                            <input type="text" id="JedinicaMere" placeholder="${JedinicaMere}" readonly>
-                                        </td>
-                                        <td>
-                                            <input type="number" step="any" id="Kolicina" min="${minValue}" value="${Kolicina}">
-                                        </td>
-                                        <td>
-                                            <input type="date" id="Datum" value="${Datum}">
-                                        </td>
-                                        <td>
-                                            <button type="button" id="confirmEdit" onclick="confirmEdit(this, '${minValue}', '${SifraArtikla}', '${Kolicina}')">Potvrdi</button>
-                                        </td>
-                                        <td>
-                                            <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Ulaza}', '${SifraArtikla}', '${Naziv}', '${JedinicaMere}', '${Kolicina}', '${formatDatum}')">Ponisti</button>
-                                        </td>`;
+                    $row.html(rowHTML);
 
-                        $row.html(rowHTML);
-
-                        ipcRenderer.send("req-SifraArtikla");
-                        ipcRenderer.once("res-SifraArtikla", (evt, rows) => {
-                            let $select = $row.find("#SifraArtikla");
-                            for (let obj of rows) {
-                                let temp_SifraArtikla = Object.values(obj)[1];
-                                if (temp_SifraArtikla == SifraArtikla) {
-                                    $select.append(`<option value="${temp_SifraArtikla}" selected>${temp_SifraArtikla}</option`);
-                                } else {
-                                    $select.append(`<option value="${temp_SifraArtikla}">${temp_SifraArtikla}</option`);
-                                }
+                    ipcRenderer.send("req-SifraArtikla");
+                    ipcRenderer.once("res-SifraArtikla", (evt, rows) => {
+                        let $select = $row.find("#SifraArtikla");
+                        for (let obj of rows) {
+                            let temp_SifraArtikla = Object.values(obj)[1];
+                            if (temp_SifraArtikla == SifraArtikla) {
+                                $select.append(`<option value="${temp_SifraArtikla}" selected>${temp_SifraArtikla}</option`);
+                            } else {
+                                $select.append(`<option value="${temp_SifraArtikla}">${temp_SifraArtikla}</option`);
                             }
-                            $select.selectpicker('refresh');
-                        });
+                        }
+                        $select.selectpicker('refresh');
                     });
                 });
 
@@ -250,7 +244,7 @@
                 });
             });
 
-            function confirmEdit(btn, minValue, prev_SifraArtikla, prev_Kolicina) {
+            function confirmEdit(btn, prev_SifraArtikla, prev_Kolicina) {
                 let $row = $(btn).closest("tr");
                 let ID_Ulaza = parseInt($row.find("#ID_Ulaza").text());
                 let SifraArtikla = parseInt($row.find("#SifraArtikla").val());
@@ -260,46 +254,42 @@
                 let Datum = $row.find("#Datum").val();
                 let formatDatum = Datum.substr(8, 2) + '.' + Datum.substr(5, 2) + '.' + Datum.substr(0, 4) + '.';
 
-                if ($row.find("#Kolicina")[0].checkValidity()) {
-                    ipcRenderer.send("edit-Ulaz", ID_Ulaza, prev_SifraArtikla, SifraArtikla, prev_Kolicina, Kolicina, Datum);
-                    ipcRenderer.once("edited-Ulaz", () => {
-                        let rowHMTL = `<td class="value" style="display: none;">${ID_Ulaza}</td>
-                                                <td class="value">${SifraArtikla}</td>
-                                                <td class="value">${Naziv}</td>
-                                                <td class="value">${JedinicaMere}</td>
-                                                <td class="value">${Kolicina}</td>
-                                                <td class="value">${formatDatum}</td>
-                                                <td><button type="button" class="deleteRow">X</button></td>
-                                                <td><button type="button" class="editRow">E</button></td>`;
+                ipcRenderer.send("edit-Ulaz", ID_Ulaza, prev_SifraArtikla, SifraArtikla, prev_Kolicina, Kolicina, Datum);
+                ipcRenderer.once("edited-Ulaz", () => {
+                    let rowHMTL = `<td class="value" style="display: none;">${ID_Ulaza}</td>
+                                            <td class="value">${SifraArtikla}</td>
+                                            <td class="value">${Naziv}</td>
+                                            <td class="value">${JedinicaMere}</td>
+                                            <td class="value">${Kolicina}</td>
+                                            <td class="value">${formatDatum}</td>
+                                            <td><button type="button" class="deleteRow">X</button></td>
+                                            <td><button type="button" class="editRow">E</button></td>`;
 
-                        $row.html(rowHMTL);
+                    $row.html(rowHMTL);
 
-                        let rowsIndex = rowsUlaz.findIndex((element) => {
-                            return element.ID_Ulaza == ID_Ulaza;
-                        });
-                        rowsUlaz[rowsIndex] = {
-                            ID_Ulaza: ID_Ulaza,
-                            SifraArtikla: SifraArtikla,
-                            Naziv: Naziv,
-                            JedinicaMere: JedinicaMere,
-                            Kolicina: Kolicina,
-                            Datum: Datum
-                        };
-                        let tableIndex = tableContent.findIndex((element) => {
-                            return element.ID_Ulaza == ID_Ulaza;
-                        });
-                        tableContent[tableIndex] = {
-                            ID_Ulaza: ID_Ulaza,
-                            SifraArtikla: SifraArtikla,
-                            Naziv: Naziv,
-                            JedinicaMere: JedinicaMere,
-                            Kolicina: Kolicina,
-                            Datum: Datum
-                        };
+                    let rowsIndex = rowsUlaz.findIndex((element) => {
+                        return element.ID_Ulaza == ID_Ulaza;
                     });
-                } else {
-                    ipcRenderer.send("error", 'Greska pri unosu podataka', `Ukupna kolicina u skladistu ne sme da bude manja od 0\nUneta kolicina mora da bude bar ${minValue}`);
-                }
+                    rowsUlaz[rowsIndex] = {
+                        ID_Ulaza: ID_Ulaza,
+                        SifraArtikla: SifraArtikla,
+                        Naziv: Naziv,
+                        JedinicaMere: JedinicaMere,
+                        Kolicina: Kolicina,
+                        Datum: Datum
+                    };
+                    let tableIndex = tableContent.findIndex((element) => {
+                        return element.ID_Ulaza == ID_Ulaza;
+                    });
+                    tableContent[tableIndex] = {
+                        ID_Ulaza: ID_Ulaza,
+                        SifraArtikla: SifraArtikla,
+                        Naziv: Naziv,
+                        JedinicaMere: JedinicaMere,
+                        Kolicina: Kolicina,
+                        Datum: Datum
+                    };
+                });
             }
 
             function cancelEdit(btn, ID_Ulaza, SifraArtikla, Naziv, JedinicaMere, Kolicina, Datum) {

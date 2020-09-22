@@ -18,7 +18,8 @@ db.serialize(() => {
 
     // proveri za INT PRIMARY KEY mozda ga ne uvecava automatski,
     // promeni mozda na INTEGER PRIMARY KEY
-    db.run(`CREATE TABLE IF NOT EXISTS Artikl (
+    db.run(`
+        CREATE TABLE IF NOT EXISTS Artikl (
         ID_Artikla INTEGER PRIMARY KEY,
         SifraArtikla INT UNIQUE NOT NULL,
         Naziv NCHAR(100) NOT NULL,
@@ -30,7 +31,8 @@ db.serialize(() => {
             console.log(err);
         }
     });
-    db.run(`CREATE TABLE IF NOT EXISTS Radnik (
+    db.run(`
+        CREATE TABLE IF NOT EXISTS Radnik (
         ID_Radnika INTEGER PRIMARY KEY,
         PrezimeIme NCHAR(100) NOT NULL,
         UkupnoZaduzenje FLOAT NOT NULL DEFAULT 0 CHECK(UkupnoZaduzenje >= 0)
@@ -39,7 +41,8 @@ db.serialize(() => {
             console.log(err);
         }
     });
-    db.run(`CREATE TABLE IF NOT EXISTS Ulaz (
+    db.run(`
+        CREATE TABLE IF NOT EXISTS Ulaz (
         ID_Ulaza INTEGER PRIMARY KEY,
         ID_Artikla INTEGER NOT NULL,
         Kolicina FLOAT NOT NULL CHECK(Kolicina > 0),
@@ -51,7 +54,8 @@ db.serialize(() => {
             console.log(err);
         }
     });
-    db.run(`CREATE TABLE IF NOT EXISTS Zaduzenje (
+    db.run(`
+        CREATE TABLE IF NOT EXISTS Zaduzenje (
         ID_Zaduzenja INTEGER PRIMARY KEY,
         ID_Radnika INTEGER NOT NULL,
         ID_Artikla INTEGER NOT NULL,
@@ -66,7 +70,8 @@ db.serialize(() => {
             console.log(err);
         }
     });
-    db.run(`CREATE TABLE IF NOT EXISTS ZaduzenjePoRadniku (
+    db.run(`
+        CREATE TABLE IF NOT EXISTS ZaduzenjePoRadniku (
         ID_Radnika INTEGER,
         ID_Artikla INTEGER,
         Kolicina FLOAT NOT NULL DEFAULT 0 CHECK(Kolicina >= 0),
@@ -80,7 +85,8 @@ db.serialize(() => {
             console.log(err);
         }
     });
-    db.run(`CREATE TABLE IF NOT EXISTS Razduzenje (
+    db.run(`
+        CREATE TABLE IF NOT EXISTS Razduzenje (
         ID_Razduzenja INTEGER PRIMARY KEY,
         ID_Radnika INTEGER NOT NULL,
         ID_Artikla INTEGER NOT NULL,
@@ -94,7 +100,83 @@ db.serialize(() => {
         if (err) {
             console.log(err);
         }
-    })
+    });
+    // db.run(`
+    //     CREATE TRIGGER IF NOT EXISTS ChecUpdateUlaz
+    //     BEFORE UPDATE ON Ulaz
+    //     BEGIN
+    //         SELECT
+    //             CASE
+    //                 WHEN (
+    //                     SELECT NEW.Kolicina + IFNULL(SUM(Kolicina), 0) - (
+    //                         SELECT IFNULL(SUM(Kolicina), 0)
+    //                         FROM Zaduzenje
+    //                         WHERE ID_Artikla=NEW.ID_Artikla
+    //                     )
+    //                     FROM Ulaz
+    //                     WHERE ID_Ulaza!=NEW.ID_Ulaza AND ID_Artikla=NEW.ID_Artikla
+    //                 ) < 0 THEN
+    //                     RAISE(ABORT, 'Nedovoljna kolicina')
+    //             END;
+    //     END;
+    // `, (err) => {
+    //     if (err) {
+    //         console.log(err);
+    //     }
+    // });
+    // db.run(`
+    //     CREATE TRIGGER IF NOT EXISTS CheckDeleteUlaz
+    //     BEFORE DELETE ON Ulaz
+    //     BEGIN
+    //         SELECT
+    //             CASE
+    //                 WHEN (
+    //                     SELECT IFNULL(SUM(Kolicina), 0) - (
+    //                         SELECT IFNULL(SUM(Kolicina), 0)
+    //                         FROM Zaduzenje
+    //                         WHERE ID_Artikla=OLD.ID_Artikla
+    //                     )
+    //                     FROM Ulaz
+    //                     WHERE ID_Ulaza!=OLD.ID_Ulaza AND ID_Artikla=OLD.ID_Artikla
+    //                 ) < 0 THEN
+    //                     RAISE(ABORT, 'Nedovoljna kolicina')
+    //             END;
+    //     END;
+    // `, (err) => {
+    //     if (err) {
+    //         console.log(err);
+    //     }
+    // });
+    // db.run(`
+    //     CREATE TRIGGER IF NOT EXISTS CheckInsertZaduzenje
+    //     BEFORE INSERT ON Zaduzenje
+    //     BEGIN
+    //         SELECT 
+    //             CASE
+    //                 WHEN (
+    //                     SELECT IFNULL(SUM(Kolicina), 0) - (
+    //                         SELECT IFNULL(SUM(Kolicina), 0)
+    //                         FROM Zaduzenje
+    //                         WHERE ID_Artikla=NEW.ID_Artikla
+    //                     )
+    //                     FROM Ulaz
+    //                     WHERE ID_Artikla=NEW.ID_Artikla
+    //                 ) < NEW.Kolicina THEN
+    //                     RAISE(ABORT, 'Nedovoljna kolicina u skladistu')
+    //             END;
+    //     END;
+    // `, (err) => {
+    //     if (err) {
+    //         console.log(err);
+    //     }
+    // });
+    // db.run(`
+
+    // `, (err) => {
+    //     if (err) {
+    //         console.log(err);
+    //     }
+    // });
 });
 
 module.exports = { db };

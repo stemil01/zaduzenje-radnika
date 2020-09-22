@@ -67,13 +67,20 @@
                     ipcRenderer.send("req-Artikl-zaRadnik", ID_Radnika);
                     ipcRenderer.once("res-Artikl-zaRadnik", (evt, rows) => {
                         $("#SifraArtikla").empty();
+                        let selected = false;
                         for (let obj of rows) {
                             let [temp_ID_Artikla, temp_SifraArtikla, temp_Naziv] = Object.values(obj);
                             if (temp_ID_Artikla == ID_Artikla) {
                                 $("#SifraArtikla").append(`<option value="${temp_ID_Artikla}" selected>${temp_SifraArtikla} - ${temp_Naziv}</option>`)
+                                selected = true;
                             } else {
                                 $("#SifraArtikla").append(`<option value="${temp_ID_Artikla}">${temp_SifraArtikla} - ${temp_Naziv}</option>`)
                             }
+                        }
+                        if (!selected) {
+                            $("#Kolicina").removeAttr("max");
+                            $("#Kolicina").removeAttr("placeholder");
+                            $("#labelKolicina").html('Kolicina:');
                         }
                         $("#SifraArtikla").selectpicker('refresh');
                     });
@@ -96,7 +103,7 @@
                     let ID_Radnika = $("#PrezimeIme").val();
                     ipcRenderer.send("get-JedinicaMere", ID_Artikla);
                     ipcRenderer.once("JedinicaMere", (evt, row) => {
-                        let [JedinicaMere] = Object.values(row)[0];
+                        let [JedinicaMere] = Object.values(row);
                         $("#labelKolicina").html(`Kolicina (${JedinicaMere}):`);
                     });
 

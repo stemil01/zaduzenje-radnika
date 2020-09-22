@@ -37,7 +37,7 @@
 
             let rowsRadnik, rowsRadnikZaduzenje;
             let descPrezimeIme = true;
-            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descKolicina = true, descVrednost = true;
+            let descSifraArtikla = true, descNaziv = true, descJedinicaMere = true, descCena = true, descKolicina = true, descVrednost = true;
             let tableContent, currentPage, numberOfPages;
             let tableID = "listaRadnika", rowsData, buttons = true;
 
@@ -167,6 +167,9 @@
                                 desc = descJedinicaMere;
                                 descJedinicaMere = !descJedinicaMere;
                                 break;
+                            case "Cena":
+                                desc = descCena;
+                                descCena = !descCena;
                             case "Kolicina":
                                 desc = descKolicina;
                                 descKolicina = !descKolicina;
