@@ -555,7 +555,7 @@ app.on('ready', () => {
     ipcMain.on("delete-Razduzenje", (evt, ID_Razduzenja) => {
         database.db.run(`
             DELETE FROM Razduzenje
-            WHERE ID_Razduznja=?
+            WHERE ID_Razduzenja=?
         `, ID_Razduzenja, (err) => {
             if (err) {
                 throw err;
