@@ -136,13 +136,18 @@
                             ipcRenderer.send("req-zaduzen-Radnik");
                             ipcRenderer.once("res-zaduzen-Radnik", (evt, rows) => {
                                 let $select = $row.find("#PrezimeIme");
+                                let selected = false;
                                 for (let obj of rows) {
                                     let [temp_ID_Radnika, temp_PrezimeIme] = Object.values(obj);
                                     if (temp_PrezimeIme == PrezimeIme) {
                                         $select.append(`<option value="${temp_ID_Radnika}" selected>${temp_PrezimeIme}</option>`)
+                                        selected = true;
                                     } else {
                                         $select.append(`<option value="${temp_ID_Radnika}">${temp_PrezimeIme}</option>`)
                                     }
+                                }
+                                if (!selected) {
+                                    $select.append(`<option value="${ID_Radnika}" selected>${PrezimeIme}</option>`)
                                 }
                                 $select.selectpicker('refresh');
                             });
