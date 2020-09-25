@@ -2,6 +2,11 @@
 <html>
     <head>
         <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../../node_modules/bootstrap-select/dist/css/bootstrap-select.min.css">
+        <!-- <script defer>require('popper.js')</script> -->
+        <script defer>require('bootstrap')</script>
+        <script defer>require('bootstrap-select')</script>
         <link rel="stylesheet" href="../style.css">
         <title>Unos artikla</title>
     </head>
@@ -19,10 +24,10 @@
             <label for="Cena">Cena: </label>
             <input type="number" step="any" name="Cena" id="Cena" required><br>
 
-            <button type="submit">Unesi</button>
+            <button type="submit" class="outer-button">Unesi</button>
+            <button type="button" class="outer-button" onclick="closeWin()">Zatvori</button>
         </form>
 
-        <button type="button" onclick="closeWin()">Zatvori</button>
                 
     <script>
         const { ipcRenderer, remote } = require('electron');

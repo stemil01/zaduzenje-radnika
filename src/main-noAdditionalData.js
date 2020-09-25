@@ -567,8 +567,8 @@ app.on('ready', () => {
     // OPSTE
     ipcMain.on("open-insert-window", (evt, path) => {
         let insertWin = new BrowserWindow({
-            width: 600,
-            height: 300,
+            width: 410,
+            height: 250,
             webPreferences: {
                 nodeIntegration: true,
                 enableRemoteModule: true
@@ -577,7 +577,7 @@ app.on('ready', () => {
         insertWin.removeMenu();
 
         insertWin.loadFile(path);
-        insertWin.webContents.openDevTools();
+        // insertWin.webContents.openDevTools();
     });
 
     ipcMain.on("error", (evt, title, message) => {
