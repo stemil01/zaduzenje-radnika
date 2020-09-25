@@ -34,7 +34,7 @@ db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS Radnik (
         ID_Radnika INTEGER PRIMARY KEY,
-        PrezimeIme NCHAR(100) NOT NULL,
+        PrezimeIme NCHAR(100) UNIQUE NOT NULL,
         UkupnoZaduzenje FLOAT NOT NULL DEFAULT 0 CHECK(UkupnoZaduzenje >= 0)
     )`, (err) => {
         if (err) {

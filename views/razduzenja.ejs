@@ -136,10 +136,10 @@
                                         <td>
                                                 <input id="Datum" type="date" value="${Datum}">
                                         </td>
-                                        <td>
+                                        <td class="button-column">
                                                 <button type="button" id="confirmEdit" onclick="confirmEdit(this, '${ID_Radnika}', '${ID_Artikla}', '${Kolicina}')">Potvrdi</button>
                                         </td>
-                                        <td>
+                                        <td class="button-column">
                                                 <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Razduzenja}', '${PrezimeIme}', '${SifraArtikla}', '${Naziv}', '${JedinicaMere}', '${Kolicina}', '${formatDatum}')">Ponisti</button>
                                         </td>`;
 
@@ -358,8 +358,8 @@
                                     <td class="value">${JedinicaMere}</td>
                                     <td class="value">${Kolicina}</td>
                                     <td class="value">${formatDatum}</td>
-                                    <td><button type="button" class="deleteRow">X</button></td>
-                                    <td><button type="button" class="editRow">E</button></td>`;
+                                    <td class="button-column"><button type="button" class="deleteRow">Izbrisi</button></td>
+                                    <td class="button-column"><button type="button" class="editRow">Izmeni</button></td>`;
 
                     $row.html(rowHMTL);
 
@@ -398,8 +398,8 @@
                                     <td class="value">${JedinicaMere}</td> 
                                     <td class="value">${Kolicina}</td> 
                                     <td class="value">${Datum}</td> 
-                                    <td><button type="button" class="deleteRow">X</button></td>
-                                    <td><button type="button" class="editRow">E</button></td>`;
+                                    <td class="button-column"><button type="button" class="deleteRow">Izbrisi</button></td>
+                                    <td class="button-column"><button type="button" class="editRow">Izmeni</button></td>`;
 
                 $(btn).closest("tr").html(rowHTML);
             }

@@ -110,10 +110,10 @@
                                     <td>
                                         <input type="text" id="PrezimeIme" value="${PrezimeIme}" required>
                                     </td>
-                                    <td>
+                                    <td class="button-column">
                                         <button type="button" id="confirmEdit">Potvrdi</button>
                                     </td>
-                                    <td>
+                                    <td class="button-column">
                                         <button type="button" id="cancelEdit" onclick="cancelEdit(this, '${ID_Radnika}', '${PrezimeIme}')">Ponisti</button>
                                     </td>`;
                     $row.html(rowHTML);
@@ -132,8 +132,8 @@
                         ipcRenderer.once("edited-Radnik", () => {
                             let rowHMTL =  `<td class="value" style="display: none;">${ID_Radnika}</td>
                                             <td class="value">${PrezimeIme}</td>
-                                            <td><button type="button" class="deleteRow">X</button></td>
-                                            <td><button type="button" class="editRow">E</button></td>`;
+                                            <td class="button-column"><button type="button" class="deleteRow">Izbrisi</button></td>
+                                            <td class="button-column"><button type="button" class="editRow">Izmeni</button></td>`;
 
                             $row.html(rowHMTL);
 
@@ -260,7 +260,7 @@
                                     <div class="lastPage">Poslednja</div>
                                 </div>
 
-                                <a href="radnici.ejs">Nazad</a>
+                                <a href="radnici.ejs"><button>Nazad</button></a>
                             `);
 
                             ipcRenderer.send("list-Radnik-Zaduzenje", PrezimeIme);
@@ -312,8 +312,8 @@
             function cancelEdit(btn, ID_Radnika, PrezimeIme) {
                 let rowHMTL =  `<td class="value" style="display: none;">${ID_Radnika}</td>
                                 <td class="value">${PrezimeIme}</td>
-                                <td><button type="button" class="deleteRow">X</button></td>
-                                <td><button type="button" class="editRow">E</button></td>`;
+                                <td class="button-column"><button type="button" class="deleteRow">Izbrisi</button></td>
+                                <td class="button-column"><button type="button" class="editRow">Izmeni</button></td>`;
 
                 $(btn).closest("tr").html(rowHMTL);
             }

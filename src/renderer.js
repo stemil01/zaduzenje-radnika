@@ -44,8 +44,8 @@ function createTable(tableID, data, buttons, currentPage) {
                 }
             }
             if (buttons) {
-                rowHTML += '<td class="button-column" ><button type="button" class="deleteRow">X</button></td>';
-                rowHTML += '<td class="button-column" ><button type="button" class="editRow">E</button></td>';
+                rowHTML += '<td class="button-column"><button type="button" class="deleteRow">Izbrisi</button></td>';
+                rowHTML += '<td class="button-column"><button type="button" class="editRow">Izmeni</button></td>';
             }
             row.innerHTML = rowHTML;
             tbody.appendChild(row);
