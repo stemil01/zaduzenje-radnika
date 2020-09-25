@@ -9,7 +9,19 @@
         <%- include('partials/head') %>
     </head>
     <body>
-        <%- include('partials/navigation') %>
+        <header>
+            <a class="home-page" href="main.ejs"><img class="img-home-button" src="../img/home-button.png" alt="Pocetna strana"></a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="artikli.ejs">Artikl</a></li>
+                    <li><a href="radnici.ejs">Radnici</a></li>
+                    <li><a href="ulaz.ejs">Ulaz</a></li>
+                    <li><a class="current" href="skladiste.ejs">Stanje skladista</a></li>
+                    <li><a href="zaduzenja.ejs">Zaduzenja</a></li>
+                    <li><a href="razduzenja.ejs">Razduzenja</a></li>
+                </ul>
+            </nav>
+        </header>
 
         <input id="searchInput" placeholder="Pretrazi po...">
         <select id="searchBy">

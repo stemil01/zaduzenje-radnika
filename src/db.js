@@ -182,21 +182,6 @@ db.serialize(() => {
                             ) Un
                             GROUP BY Un.ID_Artikla
                         )
-                    ) < 0 OR (
-                        SELECT MIN(ZaduzenaKolicina)
-                        FROM (
-                            SELECT SUM(Un.Kolicina) ZaduzenaKolicina
-                            FROM (
-                                SELECT ID_Radnika, ID_Artikla, Kolicina
-                                FROM Zaduzenje
-                                UNION ALL
-                                SELECT NEW.ID_Radnika, NEW.ID_Artikla, NEW.Kolicina
-                                UNION ALL
-                                SELECT ID_Radnika, ID_Artikla, -Kolicina
-                                FROM Razduzenje
-                            ) Un
-                            GROUP BY Un.ID_Radnika, Un.ID_Artikla
-                        )
                     ) < 0 THEN
                         RAISE(ABORT, 'Greska pri unosu kolicine')
                 END;
@@ -245,7 +230,7 @@ db.serialize(() => {
                             GROUP BY Un.ID_Radnika, Un.ID_Artikla
                         )
                     ) < 0 THEN
-                        RAISE(ABORT, 'Greska pri unosu kolicine')
+                        RAISE(ABORT, 'Greska pri unosu')
                 END;
         END;
     `, (err) => {

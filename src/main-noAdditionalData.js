@@ -7,8 +7,8 @@ const db = require('./db.js');
 
 app.on('ready', () => {
     const win = new BrowserWindow({
-        width: 1400,
-        height: 800,
+        width: 1625,
+        height: 900,
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true

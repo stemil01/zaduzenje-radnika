@@ -20,7 +20,7 @@ function createTable(tableID, data, buttons, currentPage) {
                 headerHTML += `<th class="headerCell">${key}</th>`;
             }
         }
-        if (buttons) headerHTML += '<th></th><th></th>';
+        if (buttons) headerHTML += '<th class="button-column"></th><th class="button-column"></th>';
         headerHTML += '</tr>';
         thead.innerHTML = headerHTML;
         table.appendChild(thead);
@@ -44,8 +44,8 @@ function createTable(tableID, data, buttons, currentPage) {
                 }
             }
             if (buttons) {
-                rowHTML += '<td><button type="button" class="deleteRow">X</button></td>';
-                rowHTML += '<td><button type="button" class="editRow">E</button></td>';
+                rowHTML += '<td class="button-column" ><button type="button" class="deleteRow">X</button></td>';
+                rowHTML += '<td class="button-column" ><button type="button" class="editRow">E</button></td>';
             }
             row.innerHTML = rowHTML;
             tbody.appendChild(row);
