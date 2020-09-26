@@ -5,13 +5,17 @@
   "main": "src/main-noAdditionalData.js",
   "scripts": {
     "start": "electron .",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "build-windows-32": "electron-packager . zaduzenje-radnika --platform=win32 --arch=x86",
+    "build-windows-64": "electron-packager . zaduzenje-radnika --platform=win32 --arch=x86_64",
+    "build-linux-64": "electron-packager . zaduzenje-radnika --platform=linux --arch=x64"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "electron": "^9.1.0",
-    "electron-builder": "^22.7.0"
+    "electron-builder": "^22.7.0",
+    "electron-packager": "^15.1.0"
   },
   "dependencies": {
     "bootstrap": "^4.5.1",
