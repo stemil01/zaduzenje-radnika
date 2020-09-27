@@ -1,4 +1,4 @@
-let pageSize = 10;
+let pageSize = 15;
 
 function createTable(tableID, data, buttons, currentPage) {
     let table = document.getElementById(tableID);

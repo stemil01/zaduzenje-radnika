@@ -15,7 +15,7 @@ app.on('ready', () => {
         }
     });
     win.loadFile('views/main.ejs');
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
 
     // ARTIKL
     ipcMain.on("list-Artikl", () => {
@@ -468,6 +468,7 @@ app.on('ready', () => {
                     WHERE ID_Radnika=(SELECT ID_Radnika FROM Radnik WHERE PrezimeIme=?)
                 ) Un
                 GROUP BY Un.ID_Artikla
+                HAVING IFNULL(ROUND(SUM(Un.Kolicina), 3), 0) > 0
             ) Res, Artikl A
             WHERE A.ID_Artikla=Res.ID_Artikla
         `, [PrezimeIme, PrezimeIme], (err, rows) => {
@@ -568,7 +569,7 @@ app.on('ready', () => {
     ipcMain.on("open-insert-window", (evt, path) => {
         let insertWin = new BrowserWindow({
             width: 410,
-            height: 250,
+            height: 260,
             webPreferences: {
                 nodeIntegration: true,
                 enableRemoteModule: true
