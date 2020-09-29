@@ -14,7 +14,8 @@ app.on('ready', () => {
             enableRemoteModule: true
         }
     });
-    win.loadFile('views/main.ejs');
+    win.loadFile(`${__dirname}/../views/main.ejs`);
+    // win.loadFile('views/main.ejs');
     // win.webContents.openDevTools();
 
     // ARTIKL
