@@ -4,6 +4,8 @@ const database = require('./db.js');
 const { data } = require('ejs-electron');
 const { render } = require('ejs');
 const db = require('./db.js');
+const { writeSync, copyFileSync } = require('original-fs');
+const remote = require('@electron/remote/main').initialize();
 
 app.on('ready', () => {
     const win = new BrowserWindow({
@@ -11,7 +13,9 @@ app.on('ready', () => {
         height: 900,
         webPreferences: {
             nodeIntegration: true,
-            enableRemoteModule: true
+	    contextIsolation: false,
+            enableRemoteModule: true,
+	    nativeWindowOpen: false
         }
     });
     win.loadFile(`${__dirname}/../views/main.ejs`);
@@ -572,8 +576,10 @@ app.on('ready', () => {
             width: 410,
             height: 260,
             webPreferences: {
-                nodeIntegration: true,
-                enableRemoteModule: true
+		nodeIntegration: true,
+		contextIsolation: false,
+		enableRemoteModule: true,
+		nativeWindowOpen: false
             }
         });
         insertWin.removeMenu();
@@ -591,3 +597,8 @@ app.on('ready', () => {
         app.quit();
     });
 });
+
+app.on('browser-window-created', (_, window) => {
+    require("@electron/remote/main").enable(window.webContents)
+});
+
