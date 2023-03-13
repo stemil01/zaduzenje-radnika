@@ -27,6 +27,6 @@
     "jquery": "^3.5.1",
     "popper.js": "^1.16.1",
     "@electron/remote": "^2.0.8",
-    "sqlite3": "^5.0.8"
+    "sqlite3": "^5.1.5"
   }
 }
