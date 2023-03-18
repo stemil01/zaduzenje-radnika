@@ -30,6 +30,7 @@
 
         <script>
             const { ipcRenderer, remote } = require('electron');
+            const { BrowserWindow } = require('@electron/remote');
             const $ = require('jquery');
 
             ipcRenderer.send("req-Radnik");
@@ -57,7 +58,7 @@
             $("#Datum").val(year + '-' + month + '-' + day);
 
             function closeWin() {
-                remote.getCurrentWindow().close();
+                BrowserWindow.getFocusedWindow().close();
             }
 
             $(document).ready(function() {

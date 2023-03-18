@@ -4,6 +4,7 @@ const database = require('./db.js');
 const { data } = require('ejs-electron');
 const { render } = require('ejs');
 const db = require('./db.js');
+const remote = require('@electron/remote/main').initialize();
 
 app.on('ready', () => {
     const win = new BrowserWindow({
@@ -11,6 +12,7 @@ app.on('ready', () => {
         height: 900,
         webPreferences: {
             nodeIntegration: true,
+            contextIsolation: false,
             enableRemoteModule: true
         }
     });
@@ -573,13 +575,14 @@ app.on('ready', () => {
             height: 260,
             webPreferences: {
                 nodeIntegration: true,
-                enableRemoteModule: true
+                enableRemoteModule: true,
+                contextIsolation: false
             }
         });
         insertWin.removeMenu();
 
         insertWin.loadFile(path);
-        // insertWin.webContents.openDevTools();
+        insertWin.webContents.openDevTools();
     });
 
     ipcMain.on("error", (evt, title, message) => {
@@ -591,3 +594,7 @@ app.on('ready', () => {
         app.quit();
     });
 });
+
+app.on('browser-window-created', (_, window) => {
+    require("@electron/remote/main").enable(window.webContents)
+})

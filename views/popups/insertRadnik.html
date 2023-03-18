@@ -21,10 +21,11 @@
         
         <script>
             const { ipcRenderer, remote } = require('electron');
+            const { BrowserWindow } = require('@electron/remote');
             const $ = require('jquery');
 
             function closeWin() {
-                let win = remote.getCurrentWindow();
+                let win = BrowserWindow.getFocusedWindow();
                 win.close();
             }
 
